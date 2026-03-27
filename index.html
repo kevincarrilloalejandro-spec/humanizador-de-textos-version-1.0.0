@@ -3,687 +3,271 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Humanizador de Textos IA</title>
-    
-    <!-- Google Fonts -->
+    <title>El Portal Oscuro</title>
+    <!-- Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&family=Lora:ital,wght@0,400;0,500;1,400&display=swap" rel="stylesheet">
-    
+    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;500;600&family=Space+Mono&display=swap" rel="stylesheet">
     <style>
         :root {
-            --bg-color: #FAFAF8;
-            --accent-color: #4A4AE8;
-            --accent-hover: #3d3ddb;
-            --text-main: #1a1a2e;
-            --text-muted: #64748b;
-            --card-bg: #FFFFFF;
-            --result-bg: #FDFDFB;
-            --border-color: #e2e8f0;
-            --border-focus: rgba(74, 74, 232, 0.4);
-            --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
-            --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03);
-            --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
-            --radius-md: 12px;
-            --radius-lg: 16px;
-            --transition: all 0.3s ease;
+            --bg-color: #050505;
+            --gold-dim: #c9a84c;
+            --gold-glow: rgba(201, 168, 76, 0.4);
+            --gold-fill: rgba(201, 168, 76, 0.15);
+            --text-white: rgba(255, 255, 255, 0.85);
+            --text-error: rgba(220, 50, 50, 0.6);
+            --font-main: 'Cinzel', serif;
+            --font-code: 'Space Mono', monospace;
         }
 
-        * {
-            box-sizing: border-box;
-            margin: 0;
-            padding: 0;
-        }
-
-        body {
-            font-family: 'Outfit', sans-serif;
+        * { margin: 0; padding: 0; box-sizing: border-box; cursor: none; }
+        
+        body, html {
+            width: 100%; height: 100%;
             background-color: var(--bg-color);
-            color: var(--text-main);
-            line-height: 1.6;
-            min-height: 100vh;
-            display: flex;
-            flex-direction: column;
-        }
-
-        .container {
-            max-width: 1200px;
-            margin: 0 auto;
-            padding: 2.5rem 2rem;
-            width: 100%;
-            flex: 1;
-        }
-
-        /* HEADER */
-        header {
-            display: flex;
-            justify-content: space-between;
-            align-items: flex-start;
-            margin-bottom: 3.5rem;
-        }
-
-        .greeting h1 {
-            font-size: 2.5rem;
-            font-weight: 700;
-            line-height: 1.2;
-            color: var(--text-main);
-        }
-
-        .greeting h1 .name {
-            color: var(--accent-color);
-        }
-
-        .greeting p {
-            color: var(--text-muted);
-            font-size: 1.1rem;
-            margin-top: 0.5rem;
-            font-weight: 400;
-        }
-
-        .user-menu {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            gap: 0.5rem;
-        }
-
-        .avatar {
-            width: 48px;
-            height: 48px;
-            background-color: var(--accent-color);
-            color: white;
-            border-radius: 50%;
+            color: var(--text-white);
+            font-family: var(--font-main);
+            overflow: hidden;
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 1.25rem;
-            font-weight: 600;
-            box-shadow: var(--shadow-sm);
         }
 
-        .logout-btn {
-            background: none;
-            border: none;
-            color: var(--text-muted);
-            font-size: 0.85rem;
-            cursor: pointer;
-            transition: var(--transition);
-            font-family: 'Outfit', sans-serif;
+        /* Ambient effects */
+        .noise {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            pointer-events: none; z-index: 9999; opacity: 0.03;
+            background: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E");
         }
 
-        .logout-btn:hover {
-            color: #ef4444;
-        }
-
-        /* SELECTOR DE NIVEL */
-        .level-selector {
-            display: grid;
-            grid-template-columns: repeat(3, 1fr);
-            gap: 1.5rem;
-            margin-bottom: 3rem;
-        }
-
-        .level-card {
-            background-color: var(--card-bg);
-            border: 2px solid transparent;
-            border-radius: var(--radius-lg);
-            padding: 1.5rem;
-            cursor: pointer;
-            transition: var(--transition);
-            box-shadow: var(--shadow-sm);
-            text-align: left;
-        }
-
-        .level-card:hover {
-            box-shadow: var(--shadow-md);
-            transform: translateY(-2px);
-            border-color: #f1f5f9;
-        }
-
-        .level-card.active {
-            border-color: var(--accent-color);
-            background-color: rgba(74, 74, 232, 0.04);
-            box-shadow: var(--shadow-md);
-        }
-
-        .level-card h3 {
-            font-size: 1.1rem;
-            margin-bottom: 0.5rem;
-            color: var(--text-main);
-            transition: color 0.3s;
-        }
-
-        .level-card.active h3 {
-            color: var(--accent-color);
-        }
-
-        .level-card p {
-            font-size: 0.95rem;
-            color: var(--text-muted);
-            line-height: 1.4;
-        }
-
-        /* ÁREA PRINCIPAL */
-        .main-area {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 2.5rem;
-            margin-bottom: 2rem;
-        }
-
-        .text-column {
-            display: flex;
-            flex-direction: column;
-        }
-
-        .column-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: flex-end;
-            margin-bottom: 1rem;
-        }
-
-        .column-header label {
-            font-weight: 600;
-            font-size: 1.15rem;
-            color: var(--text-main);
-        }
-
-        .action-btn {
-            background: none;
-            border: none;
-            color: var(--accent-color);
-            font-weight: 500;
-            font-size: 0.9rem;
-            cursor: pointer;
-            transition: var(--transition);
-            font-family: 'Outfit', sans-serif;
-            padding: 0.25rem 0.5rem;
-            border-radius: 6px;
-        }
-
-        .action-btn:hover {
-            color: var(--accent-hover);
-            background-color: rgba(74, 74, 232, 0.05);
-        }
-
-        .textarea-container {
-            position: relative;
-            flex: 1;
-            display: flex;
-            flex-direction: column;
-        }
-
-        textarea {
-            width: 100%;
-            min-height: 300px;
-            padding: 1.75rem;
-            border-radius: var(--radius-md);
-            border: 1px solid var(--border-color);
-            background-color: var(--card-bg);
-            font-family: 'Lora', serif;
-            font-size: 1.1rem;
-            line-height: 1.8;
-            color: var(--text-main);
-            resize: vertical;
-            transition: var(--transition);
-            box-shadow: var(--shadow-sm);
-        }
-
-        textarea:focus {
-            outline: none;
-            border-color: var(--border-focus);
-            box-shadow: 0 0 0 4px rgba(74, 74, 232, 0.1);
-        }
-
-        textarea::placeholder {
-            color: #94a3b8;
-            font-family: 'Outfit', sans-serif;
-            font-weight: 300;
-        }
-
-        #texto-resultado {
-            background-color: var(--result-bg);
-            border-color: #e2e8f0;
-        }
-
-        #texto-resultado:focus {
-            outline: none;
-            border-color: var(--accent-color);
-            box-shadow: 0 0 0 4px rgba(74, 74, 232, 0.1);
-        }
-
-        .empty-state {
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            color: #94a3b8;
+        .light-rays {
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+            background: repeating-linear-gradient(
+                to right,
+                rgba(255,255,255,0) 0%,
+                rgba(201, 168, 76, 0.015) 10%,
+                rgba(255,255,255,0) 20%
+            );
+            transform: rotate(-15deg) scale(1.5);
             pointer-events: none;
-            text-align: center;
-            font-family: 'Outfit', sans-serif;
-            transition: opacity 0.3s ease;
-            width: 80%;
+            opacity: 0.6;
+            animation: raysMove 15s linear infinite alternate;
+            z-index: 0;
         }
 
-        .word-count {
-            margin-top: 0.75rem;
-            font-size: 0.85rem;
-            color: var(--text-muted);
-            text-align: right;
-            font-weight: 500;
+        @keyframes raysMove {
+            from { transform: rotate(-15deg) scale(1.5) translateX(-5%); }
+            to { transform: rotate(-15deg) scale(1.5) translateX(5%); }
         }
 
-        .warning-text {
-            color: #d97706;
-            margin-right: 1rem;
-            display: none;
-            font-weight: 500;
+        .fog {
+            position: absolute; bottom: 0; left: 0; width: 100%; height: 50%;
+            background: linear-gradient(to top, rgba(201, 168, 76, 0.04), transparent);
+            filter: blur(25px);
+            pointer-events: none;
+            animation: fogBreathe 8s ease-in-out infinite alternate;
+            z-index: 0;
         }
 
-        /* BOTÓN PRINCIPAL */
-        .btn-container {
-            display: flex;
-            justify-content: center;
-            margin: 1.5rem 0 3.5rem;
+        @keyframes fogBreathe {
+            from { opacity: 0.4; transform: scaleY(1); }
+            to { opacity: 0.8; transform: scaleY(1.3); }
         }
 
-        .btn-primary {
-            background-color: var(--accent-color);
-            color: white;
-            border: none;
-            border-radius: 50px;
-            padding: 1.1rem 3.5rem;
-            font-size: 1.15rem;
-            font-weight: 600;
-            font-family: 'Outfit', sans-serif;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-            cursor: pointer;
-            transition: var(--transition);
-            box-shadow: var(--shadow-md);
-            display: flex;
-            align-items: center;
-            gap: 0.75rem;
+        #particles {
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+            pointer-events: none; z-index: 1;
         }
 
-        .btn-primary:hover:not(:disabled) {
-            background-color: var(--accent-hover);
-            transform: translateY(-2px);
-            box-shadow: var(--shadow-lg);
+        /* Cursor */
+        .cursor-dot {
+            position: fixed; top: 0; left: 0; width: 6px; height: 6px;
+            background: var(--gold-dim); border-radius: 50%;
+            pointer-events: none; z-index: 10000;
+            transform: translate(-50%, -50%);
+            box-shadow: 0 0 10px var(--gold-dim);
+            transition: transform 0.1s ease;
+        }
+        
+        .trail {
+            position: fixed; width: 4px; height: 4px;
+            background: var(--gold-dim); border-radius: 50%;
+            pointer-events: none; z-index: 9999;
+            transform: translate(-50%, -50%);
+            opacity: 0.8;
+            transition: opacity 0.5s ease;
         }
 
-        .btn-primary:active:not(:disabled) {
-            transform: translateY(0);
+        /* Container & Form */
+        .portal-container {
+            position: relative; z-index: 10;
+            display: flex; flex-direction: column; align-items: center;
+            opacity: 0; animation: slowFadeIn 2s ease forwards 0.5s;
+            width: 100%; max-width: 350px;
         }
 
-        .btn-primary:disabled {
-            background-color: #cbd5e1;
-            cursor: not-allowed;
-            transform: none;
-            box-shadow: none;
-            color: #f8fafc;
-        }
-
-        .spinner {
-            display: none;
-            width: 20px;
-            height: 20px;
-            border: 3px solid rgba(255,255,255,0.3);
-            border-radius: 50%;
-            border-top-color: white;
-            animation: spin 1s ease-in-out infinite;
-        }
-
-        @keyframes spin {
-            to { transform: rotate(360deg); }
-        }
-
-        .fade-in {
-            animation: fadeIn 0.5s ease forwards;
-        }
-
-        @keyframes fadeIn {
-            from { opacity: 0; }
+        @keyframes slowFadeIn {
             to { opacity: 1; }
         }
 
-        /* HISTORIAL */
-        .history-section {
-            padding-top: 2rem;
-            border-top: 1px solid var(--border-color);
+        .title {
+            color: var(--gold-dim); opacity: 0.5;
+            text-transform: uppercase; font-size: 0.75rem;
+            letter-spacing: 0.4em; margin-bottom: 3.5rem;
+            text-align: center;
         }
 
-        .history-header {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            cursor: pointer;
-            user-select: none;
-            margin-bottom: 0;
-            padding: 0.5rem 0;
-            transition: var(--transition);
+        .form-area {
+            display: flex; flex-direction: column; gap: 2.5rem;
+            width: 100%;
         }
 
-        .history-header:hover h3 {
-            color: var(--accent-color);
+        .input-group { position: relative; }
+        
+        input {
+            width: 100%; background: transparent; border: none;
+            border-bottom: 1px solid rgba(201, 168, 76, 0.3);
+            color: var(--text-white); padding: 0.5rem 0;
+            font-size: 1rem; outline: none; transition: all 0.4s ease;
+            font-family: var(--font-main); text-align: center;
         }
 
-        .history-header h3 {
-            font-size: 1.25rem;
-            font-weight: 600;
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
-            color: var(--text-main);
-            transition: color 0.2s;
+        input::placeholder {
+            color: rgba(255,255,255,0.2); letter-spacing: 0.1em;
+            text-transform: lowercase; font-family: var(--font-main);
         }
 
-        .toggle-icon {
-            transition: transform 0.3s ease;
-            color: var(--text-muted);
-            font-size: 0.8rem;
+        input:focus {
+            border-bottom-color: var(--gold-dim);
+            box-shadow: 0 1px 15px -5px var(--gold-glow);
         }
 
-        .history-content {
-            display: none;
-            flex-direction: column;
-            gap: 1rem;
-            margin-top: 1.5rem;
+        input.code-input {
+            font-family: var(--font-code); letter-spacing: 0.3em;
+            text-transform: uppercase;
         }
 
-        .history-content.show {
-            display: flex;
-            animation: fadeIn 0.3s ease;
+        input.code-input::placeholder {
+            font-family: var(--font-code); letter-spacing: 0.3em;
         }
 
-        .history-item {
-            background-color: var(--card-bg);
-            border: 1px solid var(--border-color);
-            border-radius: var(--radius-md);
-            padding: 1.25rem 1.5rem;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            transition: var(--transition);
+        /* Typing Flash Effect */
+        .char-flash {
+            animation: charGlow 0.3s ease;
         }
 
-        .history-item:hover {
-            box-shadow: var(--shadow-sm);
-            border-color: #cbd5e1;
-            transform: scale(1.005);
+        @keyframes charGlow {
+            0% { text-shadow: 0 0 15px var(--gold-dim); color: var(--gold-dim); }
+            100% { text-shadow: none; color: var(--text-white); }
         }
 
-        .history-preview {
-            flex: 1;
+        .btn-enter {
+            background: transparent; border: 1px solid var(--gold-dim);
+            color: var(--gold-dim); padding: 0.8rem 2rem;
+            font-family: var(--font-main); font-size: 0.9rem;
+            text-transform: uppercase; letter-spacing: 0.3em;
+            margin-top: 1rem; position: relative; overflow: hidden;
+            transition: all 0.5s ease;
+        }
+
+        .btn-enter::before {
+            content: ''; position: absolute; top: 0; left: -100%;
+            width: 50%; height: 100%;
+            background: linear-gradient(to right, transparent, rgba(201, 168, 76, 0.4), transparent);
+            transform: skewX(-25deg); transition: all 0.5s ease;
+        }
+
+        .btn-enter:hover {
+            background: var(--gold-fill);
+            box-shadow: 0 0 20px -5px var(--gold-glow);
+            color: #fff;
+        }
+
+        .btn-enter:hover::before {
+            left: 200%; transition: all 0.8s ease;
+        }
+
+        .footer-text {
+            margin-top: 4.5rem; font-size: 0.65rem; color: rgba(255,255,255,0.15);
+            letter-spacing: 0.2em; text-transform: uppercase; text-align: center;
+        }
+
+        .error-msg {
+            position: absolute; bottom: 4rem; left: 50%; transform: translateX(-50%);
+            color: var(--text-error); font-size: 0.75rem;
+            letter-spacing: 0.2em; text-transform: uppercase;
+            opacity: 0; transition: opacity 0.5s ease;
+            text-shadow: 0 0 8px rgba(220,50,50,0.4);
+            pointer-events: none;
             white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
-            margin-right: 1.5rem;
-            font-family: 'Lora', serif;
-            color: var(--text-main);
-            font-size: 1.05rem;
         }
 
-        .history-meta {
-            display: flex;
-            align-items: center;
-            gap: 1.5rem;
-            flex-shrink: 0;
+        .shake {
+            animation: shakeAnim 0.4s cubic-bezier(.36,.07,.19,.97) both;
         }
 
-        .badge {
-            padding: 0.25rem 0.8rem;
-            border-radius: 50px;
-            font-size: 0.75rem;
-            font-weight: 600;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
+        @keyframes shakeAnim {
+            10%, 90% { transform: translate3d(-1px, 0, 0); }
+            20%, 80% { transform: translate3d(2px, 0, 0); }
+            30%, 50%, 70% { transform: translate3d(-3px, 0, 0); }
+            40%, 60% { transform: translate3d(3px, 0, 0); }
         }
 
-        .badge.basico { background-color: #e0f2fe; color: #0284c7; }
-        .badge.normal { background-color: #f3e8ff; color: #7e22ce; }
-        .badge.avanzado { background-color: #ffedd5; color: #c2410c; }
-
-        .time {
-            font-size: 0.85rem;
-            color: var(--text-muted);
-            font-weight: 500;
+        /* Success Overlay */
+        #success-overlay {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background-color: #000; z-index: 100000;
+            display: flex; align-items: center; justify-content: center;
+            opacity: 0; pointer-events: none; transition: opacity 2s ease;
         }
 
-        /* OVERLAY LOGIN */
-        #login-overlay {
-            position: fixed;
-            top: 0; left: 0; width: 100%; height: 100%;
-            background-color: var(--bg-color);
-            z-index: 9999;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            padding: 2rem;
-        }
-
-        .login-card {
-            background-color: var(--card-bg);
-            border-radius: var(--radius-lg);
-            padding: 3rem;
-            max-width: 450px;
-            width: 100%;
-            box-shadow: var(--shadow-lg);
-            border: 1px solid var(--border-color);
-            text-align: center;
-        }
-
-        .login-card h2 {
-            font-size: 1.8rem;
-            color: var(--text-main);
-            margin-bottom: 0.5rem;
-        }
-
-        .login-card p {
-            color: var(--text-muted);
-            margin-bottom: 2rem;
-            font-size: 1rem;
-        }
-
-        .login-form .input-group {
-            margin-bottom: 1.5rem;
-            text-align: left;
-        }
-
-        .login-form label {
-            display: block;
-            margin-bottom: 0.5rem;
-            font-weight: 500;
-            color: var(--text-main);
-            font-size: 0.95rem;
-        }
-
-        .login-form input {
-            width: 100%;
-            padding: 0.8rem 1rem;
-            border-radius: var(--radius-md);
-            border: 1px solid var(--border-color);
-            font-family: 'Outfit', sans-serif;
-            font-size: 1rem;
-            transition: var(--transition);
-        }
-
-        .login-form input:focus {
-            outline: none;
-            border-color: var(--accent-color);
-            box-shadow: 0 0 0 3px rgba(74, 74, 232, 0.1);
-        }
-
-        .login-form input.code-format {
-            letter-spacing: 2px;
-            text-align: center;
-            font-family: monospace;
-            font-size: 1.2rem;
-            text-transform: uppercase;
-        }
-
-        .login-btn {
-            width: 100%;
-            padding: 1rem;
-            margin-top: 1rem;
-            justify-content: center;
-        }
-
-        .login-error {
-            color: #ef4444;
-            font-size: 0.9rem;
-            margin-top: 1rem;
-            display: none;
-        }
-
-        /* RESPONSIVE */
-        @media (max-width: 900px) {
-            .main-area {
-                gap: 1.5rem;
-            }
+        .success-text {
+            color: var(--gold-dim); font-size: 1.2rem;
+            letter-spacing: 0.3em; text-transform: uppercase;
+            text-shadow: 0 0 15px var(--gold-glow);
         }
         
-        @media (max-width: 768px) {
-            .container {
-                padding: 1.5rem 1rem;
-            }
-            header {
-                flex-direction: column;
-                gap: 1.5rem;
-                margin-bottom: 2.5rem;
-            }
-            .user-menu {
-                flex-direction: row;
-                width: 100%;
-                justify-content: space-between;
-            }
-            .level-selector {
-                grid-template-columns: 1fr;
-                gap: 1rem;
-            }
-            .main-area {
-                grid-template-columns: 1fr;
-            }
-            .history-item {
-                flex-direction: column;
-                align-items: flex-start;
-                gap: 1rem;
-            }
-            .history-preview {
-                margin-right: 0;
-                white-space: normal;
-                display: -webkit-box;
-                -webkit-line-clamp: 2;
-                line-clamp: 2;
-                -webkit-box-orient: vertical;
-            }
-            .history-meta {
-                width: 100%;
-                justify-content: space-between;
-            }
+        span.typed-char {
+            opacity: 0;
+            animation: typeFade 0.1s forwards;
         }
+        
+        @keyframes typeFade { to { opacity: 1; } }
+
     </style>
 </head>
 <body>
-    <!-- LOGIN OVERLAY -->
-    <div id="login-overlay" style="display: none;">
-        <div class="login-card">
-            <h2>Bienvenido 👋</h2>
-            <p>Ingresa tu código de invitación para acceder a la herramienta.</p>
-            <div class="login-form">
-                <div class="input-group">
-                    <label>Tu Correo Electrónico</label>
-                    <input type="email" id="login-email" placeholder="correo@ejemplo.com">
-                </div>
-                <div class="input-group">
-                    <label>Código de Invitación</label>
-                    <input type="text" id="login-code" class="code-format" placeholder="XXXX-XXXX" maxlength="9">
-                </div>
-                <button class="btn-primary login-btn" onclick="verificarAcceso()">Entrar</button>
-                <div id="login-error" class="login-error">Código o correo inválido.</div>
+    <div class="noise"></div>
+    <div class="light-rays"></div>
+    <div class="fog"></div>
+    <canvas id="particles"></canvas>
+
+    <div class="cursor-dot" id="cursor"></div>
+
+    <div class="portal-container" id="portal">
+        <div class="title">SOLO LOS INVITADOS PUEDEN ENTRAR</div>
+        
+        <div class="form-area">
+            <div class="input-group">
+                <input type="email" id="in-email" placeholder="tu correo" autocomplete="off">
             </div>
+            <div class="input-group">
+                <input type="text" id="in-code" class="code-input" placeholder="_ _ _ _ - _ _ _ _" maxlength="9" autocomplete="off">
+            </div>
+            <button class="btn-enter" onclick="verificarAcceso()">ENTRAR</button>
         </div>
+
+        <div class="footer-text">¿No tienes invitación? Permanece en las sombras.</div>
     </div>
 
-    <div class="container">
-        <header>
-            <div class="greeting">
-                <h1>Hola, <span class="name" id="user-name">Invitado</span> 👋</h1>
-                <p>¿Qué quieres humanizar hoy?</p>
-            </div>
-            <div class="user-menu">
-                <div class="avatar" id="user-avatar">I</div>
-                <button class="logout-btn" onclick="cerrarSesion()">Cerrar sesión</button>
-            </div>
-        </header>
+    <div class="error-msg" id="error-msg">Las sombras no te reconocen.</div>
 
-        <div class="level-selector" id="level-selector">
-            <div class="level-card" data-level="basico" onclick="selectLevel('basico')">
-                <h3>BÁSICO</h3>
-                <p>Cambios sutiles, mantiene la esencia</p>
-            </div>
-            <div class="level-card active" data-level="normal" onclick="selectLevel('normal')">
-                <h3>NORMAL</h3>
-                <p>Reescritura natural, fluida y expresiva</p>
-            </div>
-            <div class="level-card" data-level="avanzado" onclick="selectLevel('avanzado')">
-                <h3>AVANZADO</h3>
-                <p>Transforma completamente el texto al máximo</p>
-            </div>
-        </div>
-
-        <div class="main-area">
-            <!-- COLUMNA IZQUIERDA -->
-            <div class="text-column">
-                <div class="column-header">
-                    <label>Tu texto</label>
-                    <button class="action-btn" onclick="limpiarTexto()">Limpiar</button>
-                </div>
-                <div class="textarea-container">
-                    <textarea id="texto-original" placeholder="Pega aquí el texto que quieres humanizar..." oninput="updateOriginal()"></textarea>
-                </div>
-                <div class="word-count">
-                    <span id="warning-msg" class="warning-text">⚠️ Textos muy largos pueden tardar más</span>
-                    <span id="count-original">0 palabras</span>
-                </div>
-            </div>
-
-            <!-- COLUMNA DERECHA -->
-            <div class="text-column">
-                <div class="column-header">
-                    <label>Texto humanizado</label>
-                    <button class="action-btn" id="btn-copiar" onclick="copiarTexto()">Copiar texto</button>
-                </div>
-                <div class="textarea-container">
-                    <textarea id="texto-resultado" readonly></textarea>
-                    <div class="empty-state" id="empty-state">Tu texto humanizado aparecerá aquí...</div>
-                </div>
-                <div class="word-count">
-                    <span id="count-resultado" style="visibility: hidden;">0 palabras</span>
-                </div>
-            </div>
-        </div>
-
-        <div class="btn-container">
-            <button class="btn-primary" id="btn-humanizar" onclick="iniciarHumanizacion()" disabled>
-                <div class="spinner" id="btn-spinner"></div>
-                <span id="btn-text">✨ Humanizar</span>
-            </button>
-        </div>
-
-        <div class="history-section">
-            <div class="history-header" onclick="toggleHistory()">
-                <h3>📋 Historial reciente</h3>
-                <span class="toggle-icon" id="history-icon">▼</span>
-            </div>
-            <div class="history-content" id="history-content">
-                <!-- Historial dinámico -->
-            </div>
-        </div>
+    <div id="success-overlay">
+        <div class="success-text" id="success-text"></div>
     </div>
 
     <script>
-        // --- 1. CONFIGURACIÓN INICIAL Y SESIÓN ---
+        // --- 1. CONFIGURACIÓN DE INVITACIONES ---
         function inicializarInvitaciones() {
             const invitaciones = JSON.parse(localStorage.getItem('invitaciones') || '[]');
             const yaExiste = invitaciones.find(inv => inv.codigo === '2410-2025');
@@ -691,7 +275,7 @@
             if (!yaExiste) {
                 invitaciones.push({
                     id: 'inv-default-001',
-                    email: '',        // vacío = funciona con CUALQUIER correo
+                    email: '', 
                     nombre: '',
                     codigo: '2410-2025',
                     nota: 'Código de acceso general',
@@ -703,42 +287,173 @@
                 localStorage.setItem('invitaciones', JSON.stringify(invitaciones));
             }
         }
-        
-        // Llamar al cargar la página
         inicializarInvitaciones();
 
-        const sesion = JSON.parse(sessionStorage.getItem('sesion') || '{}');
-        const overlay = document.getElementById('login-overlay');
+        // --- 2. CURSOR Y TRAIL ---
+        const cursor = document.getElementById('cursor');
+        let mouseX = window.innerWidth / 2;
+        let mouseY = window.innerHeight / 2;
 
-        if (!sesion.email) {
-            overlay.style.display = 'flex';
-        } else {
-            document.getElementById('user-name').textContent = sesion.nombre || "Invitado";
-            document.getElementById('user-avatar').textContent = (sesion.nombre || "I").charAt(0).toUpperCase();
+        document.addEventListener('mousemove', (e) => {
+            mouseX = e.clientX;
+            mouseY = e.clientY;
+            cursor.style.transform = `translate(${mouseX}px, ${mouseY}px)`;
+            
+            // Trail
+            if (Math.random() > 0.4) {
+                const trail = document.createElement('div');
+                trail.className = 'trail';
+                trail.style.left = `${mouseX}px`;
+                trail.style.top = `${mouseY}px`;
+                document.body.appendChild(trail);
+                
+                setTimeout(() => { trail.style.opacity = '0'; }, 50);
+                setTimeout(() => { trail.remove(); }, 500);
+            }
+        });
+
+        document.querySelectorAll('input, button').forEach(el => {
+            el.addEventListener('mouseenter', () => cursor.style.transform = `translate(${mouseX}px, ${mouseY}px) scale(1.5)`);
+            el.addEventListener('mouseleave', () => cursor.style.transform = `translate(${mouseX}px, ${mouseY}px) scale(1)`);
+        });
+
+        // --- 3. PARTICULAS CANVAS ---
+        const canvas = document.getElementById('particles');
+        const ctx = canvas.getContext('2d');
+        let w, h, particlesArray;
+
+        function initCanvas() {
+            w = canvas.width = window.innerWidth;
+            h = canvas.height = window.innerHeight;
+            particlesArray = [];
+            for (let i = 0; i < 90; i++) {
+                particlesArray.push(new Particle());
+            }
+        }
+
+        class Particle {
+            constructor() {
+                this.x = Math.random() * w;
+                this.y = Math.random() * h;
+                this.size = Math.random() * 1.5 + 0.5;
+                this.density = (Math.random() * 15) + 1;
+                this.alpha = Math.random() * 0.4 + 0.1;
+                this.vx = (Math.random() - 0.5) * 0.6;
+                this.vy = (Math.random() - 0.5) * 0.6;
+            }
+            draw() {
+                ctx.fillStyle = `rgba(201, 168, 76, ${this.alpha})`;
+                ctx.beginPath();
+                ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+                ctx.closePath();
+                ctx.fill();
+            }
+            update() {
+                this.x += this.vx;
+                this.y += this.vy;
+                
+                if (this.x < 0 || this.x > w) this.vx = -this.vx;
+                if (this.y < 0 || this.y > h) this.vy = -this.vy;
+
+                let dx = mouseX - this.x;
+                let dy = mouseY - this.y;
+                let distance = Math.sqrt(dx * dx + dy * dy);
+                if (distance < 120) {
+                    const forceDirectionX = dx / distance;
+                    const forceDirectionY = dy / distance;
+                    const force = (120 - distance) / 120;
+                    this.x -= forceDirectionX * force * this.density * 0.15;
+                    this.y -= forceDirectionY * force * this.density * 0.15;
+                }
+                
+                this.draw();
+            }
+        }
+
+        function animateCanvas() {
+            ctx.clearRect(0, 0, w, h);
+            for (let i = 0; i < particlesArray.length; i++) {
+                particlesArray[i].update();
+            }
+            requestAnimationFrame(animateCanvas);
+        }
+
+        window.addEventListener('resize', initCanvas);
+        initCanvas();
+        animateCanvas();
+
+        // --- 4. LÓGICA DEL FORMULARIO ---
+        const inCode = document.getElementById('in-code');
+        const inEmail = document.getElementById('in-email');
+        const errorMsg = document.getElementById('error-msg');
+        const portal = document.getElementById('portal');
+        
+        inCode.addEventListener('input', function(e) {
+            let val = this.value.replace(/[^a-zA-Z0-9]/g, '').toUpperCase();
+            if (val.length > 4) {
+                val = val.substring(0, 4) + '-' + val.substring(4, 8);
+            }
+            this.value = val;
+            
+            this.classList.remove('char-flash');
+            void this.offsetWidth; 
+            if(val.length > 0) this.classList.add('char-flash');
+        });
+
+        function showError() {
+            portal.classList.remove('shake');
+            void portal.offsetWidth;
+            portal.classList.add('shake');
+            
+            errorMsg.style.opacity = '1';
+            setTimeout(() => { errorMsg.style.opacity = '0'; }, 3000);
+        }
+
+        function playSuccessAnimation() {
+            const overlay = document.getElementById('success-overlay');
+            const textContainer = document.getElementById('success-text');
+            const msg = "Bienvenido a las sombras...";
+            
+            overlay.style.opacity = '1';
+            document.body.style.backgroundColor = '#000';
+            
+            textContainer.innerHTML = '';
+            setTimeout(() => {
+                for (let i = 0; i < msg.length; i++) {
+                    setTimeout(() => {
+                        const span = document.createElement('span');
+                        span.textContent = msg[i] === ' ' ? '\u00A0' : msg[i];
+                        span.className = 'typed-char';
+                        textContainer.appendChild(span);
+                    }, i * 120);
+                }
+                
+                setTimeout(() => {
+                    textContainer.style.opacity = '0';
+                    setTimeout(() => {
+                        window.location.href = './dashboard.html';
+                    }, 1000);
+                }, msg.length * 120 + 2000);
+            }, 1000);
         }
 
         function verificarAcceso() {
-            const loginEmail = document.getElementById('login-email').value.trim().toLowerCase();
-            const loginCode = document.getElementById('login-code').value.trim();
-            const errorMsg = document.getElementById('login-error');
+            const email = inEmail.value.trim().toLowerCase();
+            const code = inCode.value.trim();
             
-            if (!loginEmail || !loginCode) {
-                errorMsg.textContent = "Por favor completa ambos campos.";
-                errorMsg.style.display = 'block';
-                return;
-            }
+            if (!email || !code) return showError();
 
             const invs = JSON.parse(localStorage.getItem('invitaciones') || '[]');
-            const inv = invs.find(i => i.codigo === loginCode && i.activo);
+            const inv = invs.find(i => i.codigo === code && i.activo);
 
-            if (inv && (inv.email === '' || inv.email.toLowerCase() === loginEmail)) {
+            if (inv && (inv.email === '' || inv.email.toLowerCase() === email)) {
                 let usuarios = JSON.parse(localStorage.getItem('usuarios_registrados') || '[]');
-                let userMatch = usuarios.find(u => u.email === loginEmail);
+                let userMatch = usuarios.find(u => u.email === email);
                 
                 if (!userMatch) {
                     userMatch = {
-                        email: loginEmail,
-                        nombre: loginEmail.split('@')[0],
+                        email: email,
+                        nombre: email.split('@')[0],
                         fechaRegistro: new Date().toISOString(),
                         ultimoAcceso: new Date().toISOString()
                     };
@@ -748,255 +463,25 @@
                 }
                 localStorage.setItem('usuarios_registrados', JSON.stringify(usuarios));
 
+                // Guardar sesión
+                sessionStorage.setItem('sesion', JSON.stringify({ email: email, nombre: userMatch.nombre }));
+
                 if (inv.email !== '' && !inv.usado) {
                     inv.usado = true;
                     inv.fechaUso = new Date().toISOString();
                     localStorage.setItem('invitaciones', JSON.stringify(invs));
                 }
 
-                sessionStorage.setItem('sesion', JSON.stringify({ email: loginEmail, nombre: userMatch.nombre }));
-                overlay.style.display = 'none';
-                window.location.reload();
+                playSuccessAnimation();
             } else {
-                errorMsg.textContent = "Código o correo inválido.";
-                errorMsg.style.display = 'block';
+                showError();
             }
         }
 
-        document.getElementById('login-code').addEventListener('input', function(e) {
-            let val = this.value.replace(/[^a-zA-Z0-9]/g, '').toUpperCase();
-            if (val.length > 4) {
-                val = val.substring(0, 4) + '-' + val.substring(4, 8);
-            }
-            this.value = val;
+        // Permitir Enter
+        window.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') verificarAcceso();
         });
-
-        const nombre = sesion.nombre || "Invitado";
-        const email = sesion.email || "invitado@ia.local";
-
-        function cerrarSesion() {
-            sessionStorage.removeItem('sesion');
-            window.location.reload();
-        }
-
-        // --- 2. ESTADO PRINCIPAL ---
-        let currentLevel = 'normal';
-        const txtOriginal = document.getElementById('texto-original');
-        const txtResultado = document.getElementById('texto-resultado');
-        const countOriginal = document.getElementById('count-original');
-        const countResultado = document.getElementById('count-resultado');
-        const btnHumanizar = document.getElementById('btn-humanizar');
-        const btnText = document.getElementById('btn-text');
-        const btnSpinner = document.getElementById('btn-spinner');
-        const emptyState = document.getElementById('empty-state');
-        const warningMsg = document.getElementById('warning-msg');
-
-        // --- 3. UI Y EVENTOS ---
-        function selectLevel(level) {
-            currentLevel = level;
-            document.querySelectorAll('.level-card').forEach(card => card.classList.remove('active'));
-            document.querySelector(`.level-card[data-level="${level}"]`).classList.add('active');
-        }
-
-        function countWords(str) {
-            const trimmed = str.trim();
-            if (!trimmed) return 0;
-            return trimmed.split(/\s+/).length;
-        }
-
-        function updateOriginal() {
-            const words = countWords(txtOriginal.value);
-            countOriginal.textContent = `${words} palabra${words !== 1 ? 's' : ''}`;
-            btnHumanizar.disabled = words === 0;
-            warningMsg.style.display = words > 1000 ? 'inline' : 'none';
-        }
-
-        function updateResultado(texto) {
-            txtResultado.value = texto;
-            const words = countWords(texto);
-            countResultado.textContent = `${words} palabra${words !== 1 ? 's' : ''}`;
-            
-            if (texto.trim().length > 0) {
-                emptyState.style.opacity = '0';
-                countResultado.style.visibility = 'visible';
-                
-                // Aplicar fade-in
-                txtResultado.classList.remove('fade-in');
-                void txtResultado.offsetWidth; // trigger reflow
-                txtResultado.classList.add('fade-in');
-            } else {
-                emptyState.style.opacity = '1';
-                countResultado.style.visibility = 'hidden';
-            }
-        }
-
-        function limpiarTexto() {
-            txtOriginal.value = '';
-            txtResultado.value = '';
-            updateOriginal();
-            updateResultado('');
-            emptyState.textContent = 'Tu texto humanizado aparecerá aquí...';
-        }
-
-        function copiarTexto() {
-            if (!txtResultado.value) return;
-            navigator.clipboard.writeText(txtResultado.value);
-            
-            const btn = document.getElementById('btn-copiar');
-            const originalText = btn.textContent;
-            
-            btn.textContent = '✓ Copiado!';
-            btn.style.color = '#10b981';
-            btn.style.backgroundColor = 'rgba(16, 185, 129, 0.1)';
-            
-            setTimeout(() => {
-                btn.textContent = originalText;
-                btn.style.color = '';
-                btn.style.backgroundColor = '';
-            }, 2000);
-        }
-
-        // --- 4. HISTORIAL ---
-        const historyKey = 'historial_' + email;
-        function getHistory() {
-            return JSON.parse(localStorage.getItem(historyKey) || '[]');
-        }
-
-        function saveHistory(textoOriginal, resultado, nivel) {
-            const hist = getHistory();
-            hist.unshift({
-                original: textoOriginal,
-                resultado: resultado,
-                nivel: nivel,
-                fecha: new Date().toISOString()
-            });
-            // Mantener solo los últimos 5
-            if (hist.length > 5) hist.length = 5;
-            localStorage.setItem(historyKey, JSON.stringify(hist));
-            renderHistory();
-        }
-
-        function formatTime(isoString) {
-            const date = new Date(isoString);
-            return date.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
-        }
-
-        function renderHistory() {
-            const content = document.getElementById('history-content');
-            const hist = getHistory();
-            
-            if (hist.length === 0) {
-                content.innerHTML = '<p style="color: var(--text-muted); font-size: 0.95rem; padding: 1rem;">No hay humanizaciones recientes.</p>';
-                return;
-            }
-
-            content.innerHTML = hist.map((item, index) => {
-                const badgeClass = item.nivel || 'normal';
-                const previewText = item.original.length > 60 
-                    ? item.original.substring(0, 60) + '...' 
-                    : item.original;
-                    
-                return `
-                    <div class="history-item">
-                        <div class="history-preview" title="${item.original}">${previewText}</div>
-                        <div class="history-meta">
-                            <span class="badge ${badgeClass}">${item.nivel}</span>
-                            <span class="time">${formatTime(item.fecha)}</span>
-                            <button class="action-btn" onclick="restaurar(${index})">Restaurar</button>
-                        </div>
-                    </div>
-                `;
-            }).join('');
-        }
-
-        function restaurar(index) {
-            const hist = getHistory();
-            const item = hist[index];
-            if (item) {
-                txtOriginal.value = item.original;
-                updateOriginal();
-                updateResultado(item.resultado);
-                selectLevel(item.nivel || 'normal');
-                window.scrollTo({ top: 0, behavior: 'smooth' });
-            }
-        }
-
-        let historyOpen = false;
-        function toggleHistory() {
-            historyOpen = !historyOpen;
-            const content = document.getElementById('history-content');
-            const icon = document.getElementById('history-icon');
-            
-            if (historyOpen) {
-                content.classList.add('show');
-                icon.style.transform = 'rotate(180deg)';
-                renderHistory();
-            } else {
-                content.classList.remove('show');
-                icon.style.transform = 'rotate(0deg)';
-            }
-        }
-
-        // --- 5. LÓGICA DE IA ---
-        const niveles = {
-            basico: `Eres un editor de textos. Humaniza el siguiente texto de forma BÁSICA: haz cambios sutiles y mínimos para que suene más natural y menos robótico. Mantén la estructura original, solo ajusta palabras muy artificiales. Conserva el significado exacto. Responde SOLO con el texto humanizado, sin explicaciones ni comentarios.`,
-            normal: `Eres un escritor experto. Humaniza el siguiente texto de forma NATURAL: reescríbelo para que suene como escrito por una persona real, con fluidez y expresividad natural. Varía la longitud de las oraciones, usa conectores naturales, elimina frases robóticas. Mantén el significado pero mejora el tono. Responde SOLO con el texto humanizado, sin explicaciones.`,
-            avanzado: `Eres un escritor creativo experto. Humaniza el siguiente texto de forma AVANZADA: transfórmalo completamente para que suene 100% humano, auténtico y personal. Reorganiza ideas, cambia la estructura, agrega matices naturales, expresiones coloquiales apropiadas, ritmo variado. El resultado debe ser irreconocible como texto de IA pero conservar el mensaje central. Responde SOLO con el texto humanizado, sin explicaciones.`
-        };
-
-        async function humanizarTexto(texto, nivel) {
-            const response = await fetch("/api/chat", {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({
-                    system: niveles[nivel],
-                    messages: [{ role: "user", content: texto }],
-                    max_tokens: 2048
-                })
-            });
-            const data = await response.json();
-            return data.content?.[0]?.text || data.message || data.response;
-        }
-
-        async function iniciarHumanizacion() {
-            const texto = txtOriginal.value.trim();
-            if (!texto) return;
-
-            // UI Feedback
-            btnText.textContent = 'Humanizando...';
-            btnSpinner.style.display = 'block';
-            btnHumanizar.disabled = true;
-            
-            txtResultado.classList.remove('fade-in');
-            txtResultado.value = '';
-            emptyState.textContent = '⏳ Procesando texto...';
-            emptyState.style.opacity = '1';
-            countResultado.style.visibility = 'hidden';
-
-            try {
-                const resultado = await humanizarTexto(texto, currentLevel);
-                
-                if (resultado) {
-                    updateResultado(resultado);
-                    saveHistory(texto, resultado, currentLevel);
-                    if (historyOpen) renderHistory();
-                } else {
-                    throw new Error("Respuesta vacía del servidor");
-                }
-            } catch (error) {
-                console.error("Error al humanizar:", error);
-                alert("Hubo un error al procesar el texto. Por favor, asegúrate de tener conexión y probar nuevamente.");
-                emptyState.textContent = 'Tu texto humanizado aparecerá aquí...';
-            } finally {
-                // Restaurar UI
-                btnText.textContent = '✨ Humanizar';
-                btnSpinner.style.display = 'none';
-                btnHumanizar.disabled = false;
-            }
-        }
-
-        // Inicializar
-        updateOriginal();
     </script>
 </body>
 </html>
