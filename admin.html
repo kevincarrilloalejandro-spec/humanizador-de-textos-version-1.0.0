@@ -1,0 +1,471 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Panel de Control Secreto</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;500;600&family=Space+Mono&display=swap" rel="stylesheet">
+    <script>
+        const PASSWORD_ADMIN = "sombra2024";
+        const res = prompt("Tu llave, viajero:");
+        if (res !== PASSWORD_ADMIN) {
+            window.location.href = './portal_secreto.html';
+        }
+    </script>
+    <style>
+        :root {
+            --bg-color: #030303;
+            --gold-dim: #d4b967; /* un poco más brillante */
+            --gold-glow: rgba(212, 185, 103, 0.4);
+            --gold-fill: rgba(212, 185, 103, 0.15);
+            --text-white: rgba(255, 255, 255, 0.9);
+            --text-dim: rgba(255, 255, 255, 0.4);
+            --text-red: rgba(220, 50, 50, 0.7);
+            --text-green: rgba(50, 220, 100, 0.7);
+            --font-main: 'Cinzel', serif;
+            --font-code: 'Space Mono', monospace;
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+
+        body, html {
+            width: 100%; height: 100%;
+            background-color: var(--bg-color);
+            font-family: var(--font-main);
+            color: var(--text-white);
+            overflow-x: hidden;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* Noise Texture */
+        .noise {
+            position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
+            pointer-events: none; z-index: 9999; opacity: 0.03;
+            background: url('data:image/svg+xml;utf8,%3Csvg viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg"%3E%3Cfilter id="noiseFilter"%3E%3CfeTurbulence type="fractalNoise" baseFrequency="0.65" numOctaves="3" stitchTiles="stitch"/%3E%3C/filter%3E%3Crect width="100%25" height="100%25" filter="url(%23noiseFilter)"/%3E%3C/svg%3E');
+        }
+
+        .admin-container {
+            position: relative;
+            z-index: 10;
+            width: 100%;
+            max-width: 1000px;
+            margin: 0 auto;
+            padding: 3rem 1rem;
+            display: flex;
+            flex-direction: column;
+            gap: 3rem;
+        }
+
+        h1, h2 {
+            text-transform: uppercase;
+            letter-spacing: 0.3em;
+            color: var(--gold-dim);
+            text-align: center;
+        }
+        
+        h1 { margin-bottom: 2rem; font-size: 1.8rem; text-shadow: 0 0 10px var(--gold-glow); }
+        h2 { font-size: 1.2rem; margin-bottom: 1.5rem; text-align: left; }
+
+        .section-box {
+            background: rgba(10, 10, 10, 0.6);
+            border: 1px solid rgba(212, 185, 103, 0.2);
+            padding: 2rem;
+            border-radius: 4px;
+            backdrop-filter: blur(5px);
+        }
+
+        /* Form Elements */
+        .form-row {
+            display: flex; gap: 1rem; margin-bottom: 1.5rem; flex-wrap: wrap;
+        }
+
+        .input-group {
+            flex: 1; min-width: 200px;
+        }
+        
+        .input-group label {
+            display: block; font-size: 0.7rem; color: var(--text-dim); text-transform: uppercase; letter-spacing: 0.1em; margin-bottom: 0.5rem;
+        }
+
+        input {
+            width: 100%; background: transparent; border: none; border-bottom: 1px solid rgba(212, 185, 103, 0.3);
+            color: var(--text-white); padding: 0.5rem; font-size: 0.9rem; outline: none; transition: all 0.3s ease;
+            font-family: var(--font-main);
+        }
+
+        input:focus {
+            border-bottom-color: var(--gold-dim); box-shadow: 0 1px 10px -2px var(--gold-glow);
+        }
+
+        input.code-input {
+            font-family: var(--font-code); letter-spacing: 0.2em; text-align: center;
+        }
+
+        .btn {
+            background: transparent; border: 1px solid var(--gold-dim); color: var(--gold-dim);
+            font-family: var(--font-main); padding: 0.5rem 1rem; text-transform: uppercase; letter-spacing: 0.1em;
+            cursor: pointer; transition: all 0.3s ease; font-size: 0.8rem;
+        }
+        
+        .btn:hover {
+            background: var(--gold-fill); box-shadow: 0 0 15px -5px var(--gold-glow);
+        }
+
+        .btn-small { padding: 0.3rem 0.6rem; font-size: 0.7rem; }
+
+        /* Tables */
+        table {
+            width: 100%; border-collapse: collapse; text-align: left;
+            font-size: 0.85rem; letter-spacing: 0.05em; margin-bottom: 1rem;
+        }
+
+        th, td {
+            padding: 1rem; border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+        }
+
+        th {
+            color: var(--text-dim); text-transform: uppercase; font-weight: 500; font-size: 0.7rem; letter-spacing: 0.1em;
+        }
+
+        tr:hover td { background: rgba(255,255,255,0.02); }
+
+        .status-pendiente { color: var(--gold-dim); }
+        .status-usado { color: var(--text-green); }
+        .status-desactivado { color: var(--text-red); }
+
+        .action-links button {
+            background: none; border: none; color: var(--text-dim); cursor: pointer;
+            margin-right: 0.5rem; font-family: var(--font-main); text-transform: uppercase;
+            font-size: 0.7rem; letter-spacing: 0.1em; transition: color 0.3s ease;
+        }
+
+        .action-links button:hover { color: var(--gold-dim); }
+        .action-links button.red:hover { color: var(--text-red); }
+
+        .flex-between { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem; }
+
+        .search-box { max-width: 250px; }
+
+        .counter { font-size: 0.7rem; color: var(--text-dim); letter-spacing: 0.1em; text-transform: uppercase; }
+
+        /* Dialog for Copy */
+        .copy-dialog {
+            margin-top: 1rem; padding: 1rem; border: 1px dashed var(--gold-dim);
+            background: rgba(0,0,0,0.5); display: none;
+        }
+
+        .copy-text { font-family: var(--font-code); font-size: 0.8rem; white-space: pre-wrap; margin-bottom: 1rem; color: var(--text-white); }
+        
+    </style>
+</head>
+<body>
+    <div class="noise"></div>
+    <div class="admin-container">
+        <h1>Registros de la Sombra</h1>
+
+        <!-- Section A -->
+        <div class="section-box">
+            <h2>Crear Código de Invitación</h2>
+            <div class="form-row">
+                <div class="input-group">
+                    <label>Correo del invitado (Obligatorio)</label>
+                    <input type="email" id="in-email" placeholder="correo@ejemplo.com">
+                </div>
+                <div class="input-group">
+                    <label>Código Personalizado</label>
+                    <div style="display:flex; gap:0.5rem">
+                        <input type="text" id="in-code" class="code-input" maxlength="9" placeholder="XXXX-XXXX">
+                        <button class="btn" onclick="generarAleatorio()">Aleatorio</button>
+                    </div>
+                </div>
+            </div>
+            <div class="form-row">
+                <div class="input-group">
+                    <label>Nombre (Opcional)</label>
+                    <input type="text" id="in-name" placeholder="Ej. John Doe">
+                </div>
+                <div class="input-group">
+                    <label>Nota Interna (Opcional)</label>
+                    <input type="text" id="in-note" placeholder="Razón de invitación...">
+                </div>
+            </div>
+            <button class="btn" onclick="crearInvitacion()">Crear Invitación</button>
+            <div id="create-msg" style="color:var(--text-red); margin-top:1rem; font-size:0.8rem"></div>
+
+            <div class="copy-dialog" id="copy-dialog">
+                <div class="copy-text" id="copy-content"></div>
+                <button class="btn btn-small" onclick="copiarAlPortapapeles()">Copiar Mensaje</button>
+            </div>
+        </div>
+
+        <!-- Section B -->
+        <div class="section-box">
+            <div class="flex-between">
+                <h2>Lista de Invitaciones</h2>
+                <input type="text" class="search-box" id="search-inv" placeholder="Buscar correo o nombre..." oninput="renderInvitaciones()">
+            </div>
+            <div class="counter" id="inv-counters">0 activas · 0 usadas · 0 total</div>
+            <div style="overflow-x: auto; margin-top:1rem;">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Correo</th>
+                            <th>Nombre</th>
+                            <th>Código</th>
+                            <th>Estado</th>
+                            <th>Fecha Creación</th>
+                            <th>Nota</th>
+                            <th>Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody id="inv-tbody">
+                        <!-- Rendered by JS -->
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Section C -->
+        <div class="section-box">
+            <div class="flex-between">
+                <h2>Usuarios Registrados</h2>
+                <div style="display:flex; gap:1rem;">
+                    <button class="btn btn-small" onclick="exportarUsuarios()">Exportar Lista (.txt)</button>
+                </div>
+            </div>
+            <div style="overflow-x: auto;">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Correo</th>
+                            <th>Nombre</th>
+                            <th>Fecha de Registro</th>
+                            <th>Último Acceso</th>
+                            <th>Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody id="usr-tbody">
+                        <!-- Rendered by JS -->
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // State
+        let invitaciones = JSON.parse(localStorage.getItem('invitaciones') || '[]');
+        let usuarios = JSON.parse(localStorage.getItem('usuarios_registrados') || '[]');
+
+        function saveState() {
+            localStorage.setItem('invitaciones', JSON.stringify(invitaciones));
+            localStorage.setItem('usuarios_registrados', JSON.stringify(usuarios));
+        }
+
+        function uuidv4() {
+            return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
+                var r = Math.random() * 16 | 0, v = c == 'x' ? r : (r & 0x3 | 0x8);
+                return v.toString(16);
+            });
+        }
+
+        // Section A: Crear Invitación
+        const allowedChars = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
+        
+        function formatCode(val) {
+            val = val.replace(/[^a-zA-Z0-9]/g, '').toUpperCase();
+            if (val.length > 4) val = val.substring(0, 4) + '-' + val.substring(4, 8);
+            return val;
+        }
+
+        document.getElementById('in-code').addEventListener('input', function(e) {
+            this.value = formatCode(this.value);
+        });
+
+        function generarAleatorio() {
+            let p1 = '', p2 = '';
+            for(let i = 0; i < 4; i++) {
+                p1 += allowedChars.charAt(Math.floor(Math.random() * allowedChars.length));
+                p2 += allowedChars.charAt(Math.floor(Math.random() * allowedChars.length));
+            }
+            document.getElementById('in-code').value = `${p1}-${p2}`;
+        }
+
+        let currentCopyText = "";
+
+        function crearInvitacion() {
+            const email = document.getElementById('in-email').value.trim().toLowerCase();
+            const code = document.getElementById('in-code').value.trim();
+            const name = document.getElementById('in-name').value.trim();
+            const note = document.getElementById('in-note').value.trim();
+            const msgObj = document.getElementById('create-msg');
+            msgObj.style.color = 'var(--text-red)';
+
+            if (!email) { msgObj.textContent = "El correo es obligatorio."; return; }
+            if (code.length !== 9 || !code.includes('-')) { msgObj.textContent = "El código debe tener formato XXXX-XXXX."; return; }
+
+            const exEmail = invitaciones.find(i => i.email === email);
+            if (exEmail) { msgObj.textContent = "Ese correo ya tiene una invitación."; return; }
+
+            const exCode = invitaciones.find(i => i.codigo === code);
+            if (exCode) { msgObj.textContent = "Ese código ya está en uso."; return; }
+
+            const nueva = {
+                id: uuidv4(),
+                email: email,
+                nombre: name,
+                codigo: code,
+                nota: note,
+                fechaCreacion: new Date().toISOString(),
+                usado: false,
+                fechaUso: null,
+                activo: true
+            };
+
+            invitaciones.push(nueva);
+            saveState();
+
+            msgObj.style.color = 'var(--text-green)';
+            msgObj.textContent = "Invitación creada exitosamente.";
+
+            // Show Dialog
+            const dialog = document.getElementById('copy-dialog');
+            currentCopyText = `Has sido invitado.\nTu correo: ${email}\nTu código: ${code}\nÚsalos juntos para entrar.`;
+            document.getElementById('copy-content').textContent = currentCopyText;
+            dialog.style.display = 'block';
+
+            // Reset
+            document.getElementById('in-email').value = '';
+            document.getElementById('in-code').value = '';
+            document.getElementById('in-name').value = '';
+            document.getElementById('in-note').value = '';
+
+            renderInvitaciones();
+        }
+
+        function copiarAlPortapapeles() {
+            navigator.clipboard.writeText(currentCopyText).then(() => {
+                alert("Mensaje copiado");
+            });
+        }
+
+        function copiarTexto(txt) {
+            navigator.clipboard.writeText(txt);
+        }
+
+        // Section B: Lista de Invitaciones
+        function toggleActivacion(id) {
+            const inv = invitaciones.find(i => i.id === id);
+            if (inv) {
+                inv.activo = !inv.activo;
+                saveState();
+                renderInvitaciones();
+            }
+        }
+
+        function eliminarInvitacion(id) {
+            if (confirm("¿Eliminar esta invitación para siempre?")) {
+                invitaciones = invitaciones.filter(i => i.id !== id);
+                saveState();
+                renderInvitaciones();
+            }
+        }
+
+        function renderInvitaciones() {
+            const tbody = document.getElementById('inv-tbody');
+            const search = document.getElementById('search-inv').value.toLowerCase().trim();
+            
+            let html = '';
+            let activas = 0, usadas = 0;
+
+            const filtradas = invitaciones.filter(i => {
+                return i.email.toLowerCase().includes(search) || i.nombre.toLowerCase().includes(search);
+            });
+
+            invitaciones.forEach(i => {
+                if(i.activo && !i.usado) activas++;
+                if(i.usado) usadas++;
+            });
+
+            document.getElementById('inv-counters').textContent = `${activas} activas · ${usadas} usadas · ${invitaciones.length} total`;
+
+            filtradas.sort((a,b) => new Date(b.fechaCreacion) - new Date(a.fechaCreacion)).forEach(i => {
+                let statusInfo = '', statusClass = '';
+                if (!i.activo) { statusInfo = 'Desactivado'; statusClass = 'status-desactivado'; }
+                else if (i.usado) { statusInfo = 'Usado'; statusClass = 'status-usado'; }
+                else { statusInfo = 'Pendiente'; statusClass = 'status-pendiente'; }
+
+                const dateStr = new Date(i.fechaCreacion).toLocaleDateString();
+
+                html += `
+                <tr>
+                    <td>${i.email}</td>
+                    <td>${i.nombre || '-'}</td>
+                    <td style="font-family:var(--font-code)">${i.codigo}</td>
+                    <td class="${statusClass}">${statusInfo}</td>
+                    <td>${dateStr}</td>
+                    <td>${i.nota || '-'}</td>
+                    <td class="action-links">
+                        <button onclick="copiarTexto('${i.codigo}')">Copiar</button>
+                        <button onclick="toggleActivacion('${i.id}')">${i.activo ? 'Desactivar' : 'Activar'}</button>
+                        <button class="red" onclick="eliminarInvitacion('${i.id}')">X</button>
+                    </td>
+                </tr>`;
+            });
+
+            tbody.innerHTML = html;
+        }
+
+        // Section C: Usuarios Registrados
+        function revocarAcceso(email) {
+            if (confirm(`¿Revocar acceso al usuario ${email}? Esto desactivará todas sus invitaciones.`)) {
+                invitaciones.forEach(i => {
+                    if(i.email === email) i.activo = false;
+                });
+                saveState();
+                renderInvitaciones();
+                renderUsuarios();
+            }
+        }
+
+        function exportarUsuarios() {
+            if (usuarios.length === 0) return alert("No hay usuarios para exportar.");
+            const data = usuarios.map(u => u.email).join('\n');
+            const blob = new Blob([data], { type: 'text/plain' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'usuarios_registrados.txt';
+            a.click();
+            URL.revokeObjectURL(url);
+        }
+
+        function renderUsuarios() {
+            const tbody = document.getElementById('usr-tbody');
+            let html = '';
+
+            usuarios.sort((a,b) => new Date(b.ultimoAcceso) - new Date(a.ultimoAcceso)).forEach(u => {
+                html += `
+                <tr>
+                    <td>${u.email}</td>
+                    <td>${u.nombre || '-'}</td>
+                    <td>${new Date(u.fechaRegistro).toLocaleString()}</td>
+                    <td>${new Date(u.ultimoAcceso).toLocaleString()}</td>
+                    <td class="action-links">
+                        <button class="red" onclick="revocarAcceso('${u.email}')">Revocar</button>
+                    </td>
+                </tr>`;
+            });
+
+            tbody.innerHTML = html;
+        }
+
+        // Initial Render
+        renderInvitaciones();
+        renderUsuarios();
+    </script>
+</body>
+</html>
