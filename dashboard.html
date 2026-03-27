@@ -258,6 +258,31 @@
         .fade-in { animation: fadeIn 0.6s ease forwards; }
         @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
 
+        /* Pensando animation */
+        .pensando {
+          display: flex;
+          gap: 12px;
+          justify-content: center;
+          align-items: center;
+          height: 100%;
+          min-height: 200px;
+        }
+
+        .pensando span {
+          color: #c9a84c;
+          font-size: 20px;
+          opacity: 0.3;
+          animation: pulso 1.4s infinite;
+        }
+
+        .pensando span:nth-child(2) { animation-delay: 0.2s; }
+        .pensando span:nth-child(3) { animation-delay: 0.4s; }
+
+        @keyframes pulso {
+          0%, 100% { opacity: 0.2; transform: scale(1); }
+          50% { opacity: 1; transform: scale(1.3); }
+        }
+
         @media (max-width: 768px) {
             .level-selector { grid-template-columns: 1fr; }
             .panels { grid-template-columns: 1fr; }
@@ -325,7 +350,7 @@
                     <span class="panel-label">TEXTO TRANSFORMADO</span>
                 </div>
                 <div class="text-box">
-                    <div class="result-area" id="texto-output"></div>
+                    <div class="result-area" id="texto-resultado"></div>
                     <div class="empty-text" id="empty-state">Tu texto transformado aparecerá aquí...</div>
                     
                     <div class="loading-container" id="loading-overlay">
@@ -343,7 +368,7 @@
         </div>
 
         <div class="btn-center">
-            <button class="btn-main" id="btn-humanizar" onclick="humanizar()" disabled>✦ HUMANIZAR</button>
+            <button class="btn-main" id="btn-humanizar" disabled>✦ HUMANIZAR</button>
         </div>
 
         <div class="history-section">
@@ -399,7 +424,7 @@
         // State
         let nivelSeleccionado = 'normal';
         const txtInput = document.getElementById('texto-input');
-        const txtOutput = document.getElementById('texto-output');
+        const txtOutput = document.getElementById('texto-resultado');
         const countIn = document.getElementById('count-input');
         const countOut = document.getElementById('count-output');
         const btnMain = document.getElementById('btn-humanizar');
@@ -473,131 +498,120 @@
             setTimeout(() => { txtOutput.style.color = 'var(--text-white)'; }, 3000);
         }
 
+        const prompts = {
+          basico: `Eres un escritor humano. Reescribe el texto que te doy
+            para que suene 100% humano y natural.
+            
+            INSTRUCCIONES:
+            - Elimina frases típicas de IA: "es importante destacar",
+              "cabe mencionar", "en conclusión", "es fundamental",
+              "sin lugar a dudas", "en el mundo actual", "cabe señalar",
+              "resulta evidente", "en este sentido"
+            - Reemplázalas por expresiones directas y cotidianas
+            - Varía levemente la longitud de las oraciones
+            - Mantén el significado original
+            - Usa palabras simples y naturales
+            
+            RESPONDE ÚNICAMENTE CON EL TEXTO REESCRITO.
+            Sin explicaciones. Sin comillas. Sin comentarios.`,
+
+          normal: `Eres un escritor humano experto. Reescribe el texto 
+            que te doy para que suene exactamente como escrito por 
+            una persona real, no por IA.
+            
+            INSTRUCCIONES:
+            - Usa tono conversacional y directo
+            - Mezcla oraciones cortas con oraciones más largas
+            - Agrega conectores naturales: "de hecho", "la verdad es que",
+              "o sea", "al final", "lo que pasa es que", "ojo que"
+            - Elimina TODAS las frases de IA sin excepción
+            - Agrega algún matiz personal o pequeña opinión ocasional
+            - Que cada párrafo fluya de forma natural
+            - Imperfecciones humanas sutiles están bien
+            
+            RESPONDE ÚNICAMENTE CON EL TEXTO REESCRITO.
+            Sin explicaciones. Sin comillas. Sin comentarios.`,
+
+          avanzado: `Eres un escritor humano con voz propia y estilo único.
+            Transforma completamente el texto que te doy para que sea
+            100% indetectable como texto generado por IA.
+            
+            INSTRUCCIONES:
+            - Reorganiza las ideas y cambia la estructura completamente
+            - Escribe con personalidad propia y voz auténtica
+            - Usa preguntas retóricas ocasionalmente
+            - Agrega ejemplos cotidianos o analogías simples
+            - Incluye reflexiones personales y matices humanos
+            - Mezcla párrafos cortos con párrafos más elaborados
+            - Usa expresiones coloquiales apropiadas
+            - Elimina absolutamente TODA frase robótica o de IA
+            - El resultado debe pasar cualquier detector de IA
+            - Que suene como una persona específica con opiniones propias
+            
+            RESPONDE ÚNICAMENTE CON EL TEXTO REESCRITO.
+            Sin explicaciones. Sin comillas. Sin comentarios.`
+        };
+
         async function humanizar() {
-          const texto = document.getElementById('texto-input').value.trim();
-          if (!texto) return;
+          const textoInput = document.getElementById('texto-input');
+          const textoResultado = document.getElementById('texto-resultado');
+          const btnHumanizar = document.getElementById('btn-humanizar');
           
-          mostrarCargando();
+          const texto = textoInput.value.trim();
+          if (!texto) return;
 
-          const prompts = {
-            basico: `Eres un escritor humano experto. Tu única tarea es 
-              reescribir el texto que te dan para que suene 100% humano.
-              
-              REGLAS ESTRICTAS PARA NIVEL BÁSICO:
-              - Haz cambios sutiles pero suficientes para que no parezca IA
-              - Varía levemente la longitud de las oraciones
-              - Agrega alguna imperfección natural ocasional
-              - Usa sinónimos más cotidianos en vez de palabras formales
-              - Mantén el significado y estructura general
-              - Elimina frases típicas de IA como: 
-                "es importante destacar", "en conclusión", "cabe mencionar",
-                "en el mundo actual", "es fundamental", "sin lugar a dudas"
-              - Sustitúyelas por expresiones más naturales y directas
-              
-              RESPONDE SOLO CON EL TEXTO REESCRITO.
-              Sin explicaciones. Sin comillas. Sin comentarios.`,
-
-            normal: `Eres un escritor humano experto. Tu única tarea es 
-              reescribir el texto que te dan para que suene 100% humano.
-              
-              REGLAS ESTRICTAS PARA NIVEL NORMAL:
-              - Reescribe completamente manteniendo el mensaje central
-              - Usa un tono conversacional y directo, como habla una persona real
-              - Mezcla oraciones cortas y largas de forma natural
-              - Agrega conectores humanos: "o sea", "de hecho", "la verdad es que",
-                "lo que pasa es que", "al final del día", "hay que decirlo"
-              - Usa la primera o segunda persona cuando sea natural
-              - Elimina TODAS las frases típicas de IA:
-                "es importante destacar", "en conclusión", "cabe mencionar",
-                "en el mundo actual", "es fundamental", "sin lugar a dudas",
-                "en resumen", "a lo largo de", "en definitiva", "cabe señalar"
-              - Agrega alguna opinión o matiz personal ocasional
-              - Varía el ritmo: a veces frases muy cortas. A veces más largas
-                que desarrollan la idea con más detalle y naturalidad.
-              
-              RESPONDE SOLO CON EL TEXTO REESCRITO.
-              Sin explicaciones. Sin comillas. Sin comentarios.`,
-
-            avanzado: `Eres un escritor humano experto con años de experiencia.
-              Tu única tarea es transformar por completo el texto que te dan
-              para que sea 100% indetectable como texto de IA.
-              
-              REGLAS ESTRICTAS PARA NIVEL AVANZADO:
-              - Transforma completamente la estructura y el estilo
-              - Escribe como una persona real con personalidad propia
-              - Usa expresiones coloquiales, contracciones y lenguaje natural
-              - Mezcla oraciones muy cortas con párrafos más elaborados
-              - Agrega reflexiones personales, dudas o matices humanos
-              - Usa recursos como: preguntas retóricas, ejemplos cotidianos,
-                analogías simples, humor sutil cuando aplique
-              - ELIMINA ABSOLUTAMENTE TODA frase de IA:
-                "es importante", "cabe destacar", "en conclusión",
-                "sin duda alguna", "en el mundo actual", "es fundamental",
-                "a lo largo de", "en definitiva", "es necesario mencionar",
-                "resulta evidente", "en este sentido", "por otro lado"
-              - El texto final debe sonar como escrito por una persona
-                específica con voz propia, no como un ensayo genérico
-              - Reorganiza párrafos si es necesario para mayor naturalidad
-              - El resultado debe pasar cualquier detector de IA
-              
-              RESPONDE SOLO CON EL TEXTO REESCRITO.
-              Sin explicaciones. Sin comillas. Sin comentarios.`
-          };
+          // Estado cargando
+          btnHumanizar.textContent = '⏳ TRANSFORMANDO...';
+          btnHumanizar.disabled = true;
+          textoResultado.innerHTML = `
+            <div class="pensando">
+              <span>✦</span><span>✦</span><span>✦</span>
+            </div>`;
 
           try {
-            const response = await fetch("https://api.anthropic.com/v1/messages", {
-              method: "POST",
-              headers: {
-                "Content-Type": "application/json",
-                "anthropic-version": "2023-06-01",
-                "anthropic-dangerous-direct-browser-access": "true"
-              },
-              body: JSON.stringify({
-                model: "claude-sonnet-4-20250514",
-                max_tokens: 2048,
-                system: prompts[nivelSeleccionado],
-                messages: [{ role: "user", content: texto }]
-              })
+            // Usar el cliente interno de Antigravity
+            const result = await window.anthropic.messages.create({
+              model: "claude-sonnet-4-20250514",
+              max_tokens: 2048,
+              system: prompts[nivelSeleccionado || 'normal'],
+              messages: [{ role: "user", content: texto }]
             });
 
-            const data = await response.json();
-            const resultado = data.content?.[0]?.text || '';
-            
-            if (!resultado) throw new Error('Sin respuesta');
-            
-            mostrarResultado(resultado);
-            guardarHistorial(texto, resultado, nivelSeleccionado);
-            
+            const textoFinal = result.content[0].text;
+
+            // Mostrar resultado con fade in
+            textoResultado.style.opacity = '0';
+            textoResultado.innerText = textoFinal;
+            textoResultado.style.transition = 'opacity 1s ease';
+            setTimeout(() => textoResultado.style.opacity = '1', 100);
+
+            // Guardar historial
+            const sesion = JSON.parse(sessionStorage.getItem('sesion') || '{}');
+            const key = 'historial_' + (sesion.email || 'invitado');
+            const historial = JSON.parse(localStorage.getItem(key) || '[]');
+            historial.unshift({
+              original: texto.substring(0, 150),
+              resultado: textoFinal,
+              nivel: nivelSeleccionado || 'normal',
+              fecha: new Date().toLocaleString('es-CO')
+            });
+            localStorage.setItem(key, JSON.stringify(historial.slice(0, 5)));
+
           } catch (error) {
-            mostrarError("Las sombras no pudieron transformar tu texto. Intenta de nuevo.");
+            textoResultado.innerText = 
+              'Las sombras no pudieron transformar tu texto. Intenta de nuevo.';
             console.error(error);
           } finally {
-            ocultarCargando();
+            btnHumanizar.textContent = '✦ HUMANIZAR';
+            btnHumanizar.disabled = false;
           }
         }
 
-        // History
-        const emailKey = sesion ? sesion.email : 'temp';
-        const histKey = 'historial_' + emailKey;
-        let histOpen = false;
-
-        function getHistorial() { return JSON.parse(localStorage.getItem(histKey) || '[]'); }
-
-        function guardarHistorial(textoOriginal, textoResultado, nivel) {
-          const sesion = JSON.parse(sessionStorage.getItem('sesion') || '{}');
-          const key = 'historial_' + (sesion.email || 'invitado');
-          const historial = JSON.parse(localStorage.getItem(key) || '[]');
-          
-          historial.unshift({
-            original: textoOriginal.substring(0, 200),
-            resultado: textoResultado.substring(0, 200),
-            nivel,
-            fecha: new Date().toLocaleString('es-CO')
-          });
-          
-          // Guardar solo las últimas 5
-          localStorage.setItem(key, JSON.stringify(historial.slice(0, 5)));
-        }
+        // Registrar evento del botón
+        document.addEventListener('DOMContentLoaded', () => {
+          document.getElementById('btn-humanizar')
+            .addEventListener('click', humanizar);
+        });
 
         function toggleHistory() {
             histOpen = !histOpen;
