@@ -450,6 +450,92 @@
             font-weight: 500;
         }
 
+        /* OVERLAY LOGIN */
+        #login-overlay {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background-color: var(--bg-color);
+            z-index: 9999;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 2rem;
+        }
+
+        .login-card {
+            background-color: var(--card-bg);
+            border-radius: var(--radius-lg);
+            padding: 3rem;
+            max-width: 450px;
+            width: 100%;
+            box-shadow: var(--shadow-lg);
+            border: 1px solid var(--border-color);
+            text-align: center;
+        }
+
+        .login-card h2 {
+            font-size: 1.8rem;
+            color: var(--text-main);
+            margin-bottom: 0.5rem;
+        }
+
+        .login-card p {
+            color: var(--text-muted);
+            margin-bottom: 2rem;
+            font-size: 1rem;
+        }
+
+        .login-form .input-group {
+            margin-bottom: 1.5rem;
+            text-align: left;
+        }
+
+        .login-form label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: 500;
+            color: var(--text-main);
+            font-size: 0.95rem;
+        }
+
+        .login-form input {
+            width: 100%;
+            padding: 0.8rem 1rem;
+            border-radius: var(--radius-md);
+            border: 1px solid var(--border-color);
+            font-family: 'Outfit', sans-serif;
+            font-size: 1rem;
+            transition: var(--transition);
+        }
+
+        .login-form input:focus {
+            outline: none;
+            border-color: var(--accent-color);
+            box-shadow: 0 0 0 3px rgba(74, 74, 232, 0.1);
+        }
+
+        .login-form input.code-format {
+            letter-spacing: 2px;
+            text-align: center;
+            font-family: monospace;
+            font-size: 1.2rem;
+            text-transform: uppercase;
+        }
+
+        .login-btn {
+            width: 100%;
+            padding: 1rem;
+            margin-top: 1rem;
+            justify-content: center;
+        }
+
+        .login-error {
+            color: #ef4444;
+            font-size: 0.9rem;
+            margin-top: 1rem;
+            display: none;
+        }
+
         /* RESPONSIVE */
         @media (max-width: 900px) {
             .main-area {
@@ -488,6 +574,7 @@
                 white-space: normal;
                 display: -webkit-box;
                 -webkit-line-clamp: 2;
+                line-clamp: 2;
                 -webkit-box-orient: vertical;
             }
             .history-meta {
@@ -498,6 +585,26 @@
     </style>
 </head>
 <body>
+    <!-- LOGIN OVERLAY -->
+    <div id="login-overlay" style="display: none;">
+        <div class="login-card">
+            <h2>Bienvenido 👋</h2>
+            <p>Ingresa tu código de invitación para acceder a la herramienta.</p>
+            <div class="login-form">
+                <div class="input-group">
+                    <label>Tu Correo Electrónico</label>
+                    <input type="email" id="login-email" placeholder="correo@ejemplo.com">
+                </div>
+                <div class="input-group">
+                    <label>Código de Invitación</label>
+                    <input type="text" id="login-code" class="code-format" placeholder="XXXX-XXXX" maxlength="9">
+                </div>
+                <button class="btn-primary login-btn" onclick="verificarAcceso()">Entrar</button>
+                <div id="login-error" class="login-error">Código o correo inválido.</div>
+            </div>
+        </div>
+    </div>
+
     <div class="container">
         <header>
             <div class="greeting">
@@ -577,12 +684,95 @@
 
     <script>
         // --- 1. CONFIGURACIÓN INICIAL Y SESIÓN ---
+        function inicializarInvitaciones() {
+            const invitaciones = JSON.parse(localStorage.getItem('invitaciones') || '[]');
+            const yaExiste = invitaciones.find(inv => inv.codigo === '2410-2025');
+            
+            if (!yaExiste) {
+                invitaciones.push({
+                    id: 'inv-default-001',
+                    email: '',        // vacío = funciona con CUALQUIER correo
+                    nombre: '',
+                    codigo: '2410-2025',
+                    nota: 'Código de acceso general',
+                    fechaCreacion: new Date().toISOString(),
+                    usado: false,
+                    fechaUso: null,
+                    activo: true
+                });
+                localStorage.setItem('invitaciones', JSON.stringify(invitaciones));
+            }
+        }
+        
+        // Llamar al cargar la página
+        inicializarInvitaciones();
+
         const sesion = JSON.parse(sessionStorage.getItem('sesion') || '{}');
+        const overlay = document.getElementById('login-overlay');
+
+        if (!sesion.email) {
+            overlay.style.display = 'flex';
+        } else {
+            document.getElementById('user-name').textContent = sesion.nombre || "Invitado";
+            document.getElementById('user-avatar').textContent = (sesion.nombre || "I").charAt(0).toUpperCase();
+        }
+
+        function verificarAcceso() {
+            const loginEmail = document.getElementById('login-email').value.trim().toLowerCase();
+            const loginCode = document.getElementById('login-code').value.trim();
+            const errorMsg = document.getElementById('login-error');
+            
+            if (!loginEmail || !loginCode) {
+                errorMsg.textContent = "Por favor completa ambos campos.";
+                errorMsg.style.display = 'block';
+                return;
+            }
+
+            const invs = JSON.parse(localStorage.getItem('invitaciones') || '[]');
+            const inv = invs.find(i => i.codigo === loginCode && i.activo);
+
+            if (inv && (inv.email === '' || inv.email.toLowerCase() === loginEmail)) {
+                let usuarios = JSON.parse(localStorage.getItem('usuarios_registrados') || '[]');
+                let userMatch = usuarios.find(u => u.email === loginEmail);
+                
+                if (!userMatch) {
+                    userMatch = {
+                        email: loginEmail,
+                        nombre: loginEmail.split('@')[0],
+                        fechaRegistro: new Date().toISOString(),
+                        ultimoAcceso: new Date().toISOString()
+                    };
+                    usuarios.push(userMatch);
+                } else {
+                    userMatch.ultimoAcceso = new Date().toISOString();
+                }
+                localStorage.setItem('usuarios_registrados', JSON.stringify(usuarios));
+
+                if (inv.email !== '' && !inv.usado) {
+                    inv.usado = true;
+                    inv.fechaUso = new Date().toISOString();
+                    localStorage.setItem('invitaciones', JSON.stringify(invs));
+                }
+
+                sessionStorage.setItem('sesion', JSON.stringify({ email: loginEmail, nombre: userMatch.nombre }));
+                overlay.style.display = 'none';
+                window.location.reload();
+            } else {
+                errorMsg.textContent = "Código o correo inválido.";
+                errorMsg.style.display = 'block';
+            }
+        }
+
+        document.getElementById('login-code').addEventListener('input', function(e) {
+            let val = this.value.replace(/[^a-zA-Z0-9]/g, '').toUpperCase();
+            if (val.length > 4) {
+                val = val.substring(0, 4) + '-' + val.substring(4, 8);
+            }
+            this.value = val;
+        });
+
         const nombre = sesion.nombre || "Invitado";
         const email = sesion.email || "invitado@ia.local";
-        
-        document.getElementById('user-name').textContent = nombre;
-        document.getElementById('user-avatar').textContent = nombre.charAt(0).toUpperCase();
 
         function cerrarSesion() {
             sessionStorage.removeItem('sesion');
