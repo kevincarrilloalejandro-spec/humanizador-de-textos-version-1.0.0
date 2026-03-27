@@ -3,20 +3,30 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Entrada</title>
+    <title>Humanizador de Textos IA</title>
+    
+    <!-- Google Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;500;600&family=Space+Mono&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&family=Lora:ital,wght@0,400;0,500;1,400&display=swap" rel="stylesheet">
+    
     <style>
         :root {
-            --bg-color: #030303;
-            --gold-dim: #c9a84c;
-            --gold-glow: rgba(201, 168, 76, 0.4);
-            --gold-fill: rgba(201, 168, 76, 0.15);
-            --text-white: rgba(255, 255, 255, 0.8);
-            --text-dim: rgba(255, 255, 255, 0.25);
-            --font-main: 'Cinzel', serif;
-            --font-code: 'Space Mono', monospace;
+            --bg-color: #FAFAF8;
+            --accent-color: #4A4AE8;
+            --accent-hover: #3d3ddb;
+            --text-main: #1a1a2e;
+            --text-muted: #64748b;
+            --card-bg: #FFFFFF;
+            --result-bg: #FDFDFB;
+            --border-color: #e2e8f0;
+            --border-focus: rgba(74, 74, 232, 0.4);
+            --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+            --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03);
+            --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+            --radius-md: 12px;
+            --radius-lg: 16px;
+            --transition: all 0.3s ease;
         }
 
         * {
@@ -25,679 +35,778 @@
             padding: 0;
         }
 
-        body, html {
-            width: 100%;
-            height: 100%;
+        body {
+            font-family: 'Outfit', sans-serif;
             background-color: var(--bg-color);
-            overflow: hidden;
+            color: var(--text-main);
+            line-height: 1.6;
+            min-height: 100vh;
             display: flex;
-            justify-content: center;
-            align-items: center;
-            font-family: var(--font-main);
-            color: var(--text-white);
-            cursor: none; /* Custom cursor */
+            flex-direction: column;
         }
 
-        /* Noise Texture */
-        .noise {
-            position: fixed;
-            top: 0; left: 0; width: 100vw; height: 100vh;
-            pointer-events: none;
-            z-index: 9999;
-            opacity: 0.03;
-            background: url('data:image/svg+xml;utf8,%3Csvg viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg"%3E%3Cfilter id="noiseFilter"%3E%3CfeTurbulence type="fractalNoise" baseFrequency="0.65" numOctaves="3" stitchTiles="stitch"/%3E%3C/filter%3E%3Crect width="100%25" height="100%25" filter="url(%23noiseFilter)"/%3E%3C/svg%3E');
-        }
-
-        /* Ambient Fog */
-        .fog-container {
-            position: absolute;
-            bottom: 0;
-            left: 0;
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 2.5rem 2rem;
             width: 100%;
-            height: 50vh;
-            overflow: hidden;
-            pointer-events: none;
-            z-index: 1;
-            opacity: 0.4;
-            mask-image: linear-gradient(to top, rgba(0,0,0,1), rgba(0,0,0,0));
-            -webkit-mask-image: linear-gradient(to top, rgba(0,0,0,1), rgba(0,0,0,0));
+            flex: 1;
         }
 
-        .fog {
-            position: absolute;
-            width: 200%;
-            height: 100%;
-            background: url('https://raw.githubusercontent.com/danielstuart14/CSS_FOG_ANIMATION/master/fog1.png') repeat-x;
-            background-size: 50% 100%;
-            bottom: 0;
-            animation: moveFog 60s linear infinite;
-            filter: blur(10px) brightness(0.2);
-            opacity: 0.5;
-        }
-        
-        .fog2 {
-            position: absolute;
-            width: 200%;
-            height: 100%;
-            background: url('https://raw.githubusercontent.com/danielstuart14/CSS_FOG_ANIMATION/master/fog2.png') repeat-x;
-            background-size: 50% 100%;
-            bottom: 0;
-            animation: moveFog 40s linear infinite reverse;
-            filter: blur(8px) brightness(0.2);
-            opacity: 0.4;
+        /* HEADER */
+        header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 3.5rem;
         }
 
-        @keyframes moveFog {
-            0% { transform: translateX(0); }
-            100% { transform: translateX(-50%); }
+        .greeting h1 {
+            font-size: 2.5rem;
+            font-weight: 700;
+            line-height: 1.2;
+            color: var(--text-main);
         }
 
-        /* Light Rays */
-        .rays {
-            position: absolute;
-            top: -50%;
-            left: -50%;
-            width: 200%;
-            height: 200%;
-            pointer-events: none;
-            z-index: 1;
-            background: radial-gradient(circle at 50% 0%, rgba(201, 168, 76, 0.05) 0%, transparent 60%);
-            animation: breathe 10s ease-in-out infinite alternate;
-        }
-        
-        .ray {
-            position: absolute;
-            top: 0;
-            left: 50%;
-            width: 2px;
-            height: 100vh;
-            background: linear-gradient(to bottom, rgba(201, 168, 76, 0.1), transparent);
-            transform-origin: top;
-            filter: blur(8px);
-        }
-        
-        .ray:nth-child(1) { transform: rotate(15deg); animation: sway 15s ease-in-out infinite alternate; }
-        .ray:nth-child(2) { transform: rotate(-10deg); left: 40%; animation: sway 12s ease-in-out infinite alternate-reverse; }
-
-        @keyframes breathe {
-            0% { opacity: 0.5; transform: scale(1); }
-            100% { opacity: 1; transform: scale(1.05); }
-        }
-        
-        @keyframes sway {
-            0% { transform: rotate(15deg); opacity: 0.3; }
-            100% { transform: rotate(25deg); opacity: 0.8; }
+        .greeting h1 .name {
+            color: var(--accent-color);
         }
 
-        /* Particles */
-        #particles-canvas {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            z-index: 2;
-            pointer-events: none;
+        .greeting p {
+            color: var(--text-muted);
+            font-size: 1.1rem;
+            margin-top: 0.5rem;
+            font-weight: 400;
         }
 
-        /* Form Container */
-        .login-wrapper {
-            position: relative;
-            z-index: 10;
-            width: 100%;
-            max-width: 400px;
-            padding: 2rem;
+        .user-menu {
             display: flex;
             flex-direction: column;
             align-items: center;
+            gap: 0.5rem;
         }
 
-        /* Staggered Fade-in Animation */
-        .fade-in {
-            opacity: 0;
-            transform: translateY(10px);
-            animation: fadeIn 2s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+        .avatar {
+            width: 48px;
+            height: 48px;
+            background-color: var(--accent-color);
+            color: white;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.25rem;
+            font-weight: 600;
+            box-shadow: var(--shadow-sm);
         }
 
-        .delay-1 { animation-delay: 1.5s; }
-        .delay-2 { animation-delay: 2.5s; }
-        .delay-3 { animation-delay: 3s; }
-        .delay-4 { animation-delay: 3.5s; }
-        .delay-5 { animation-delay: 4.5s; }
-
-        @keyframes fadeIn {
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
-        }
-
-        /* Form Elements */
-        .top-text {
-            font-size: 0.7rem;
-            letter-spacing: 0.3em;
-            text-transform: uppercase;
-            color: var(--text-dim);
-            margin-bottom: 3rem;
-            text-align: center;
-            transition: text-shadow 0.5s ease;
-        }
-
-        .top-text:hover, .bottom-text:hover {
-            text-shadow: 0 0 10px var(--gold-glow);
-            color: rgba(201, 168, 76, 0.6);
-        }
-
-        .input-group {
-            width: 100%;
-            margin-bottom: 2.5rem;
-            position: relative;
-        }
-
-        input {
-            width: 100%;
-            background: transparent;
+        .logout-btn {
+            background: none;
             border: none;
-            border-bottom: 1px solid rgba(201, 168, 76, 0.3);
-            color: var(--text-white);
-            padding: 0.5rem 0;
-            font-size: 1rem;
-            outline: none;
-            transition: all 0.4s ease;
-            letter-spacing: 0.1em;
-            cursor: none;
+            color: var(--text-muted);
+            font-size: 0.85rem;
+            cursor: pointer;
+            transition: var(--transition);
+            font-family: 'Outfit', sans-serif;
         }
 
-        input.code-input {
-            font-family: var(--font-code);
-            letter-spacing: 0.2em;
-            text-align: center;
+        .logout-btn:hover {
+            color: #ef4444;
         }
 
-        input::placeholder {
-            color: var(--text-dim);
-            font-family: var(--font-main);
-            letter-spacing: 0.1em;
-            text-transform: lowercase;
-        }
-        
-        input.code-input::placeholder {
-            font-family: var(--font-code);
-            letter-spacing: 0.3em;
+        /* SELECTOR DE NIVEL */
+        .level-selector {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 1.5rem;
+            margin-bottom: 3rem;
         }
 
-        input:focus {
-            border-bottom-color: var(--gold-dim);
-            box-shadow: 0 1px 10px -2px var(--gold-glow);
+        .level-card {
+            background-color: var(--card-bg);
+            border: 2px solid transparent;
+            border-radius: var(--radius-lg);
+            padding: 1.5rem;
+            cursor: pointer;
+            transition: var(--transition);
+            box-shadow: var(--shadow-sm);
+            text-align: left;
         }
 
-        /* Char highlight animation for code input */
-        @keyframes charFlash {
-            0% { text-shadow: 0 0 15px var(--gold-dim); color: #fff; }
-            100% { text-shadow: none; color: var(--text-white); }
-        }
-        
-        .char-flash {
-            animation: charFlash 0.5s ease forwards;
+        .level-card:hover {
+            box-shadow: var(--shadow-md);
+            transform: translateY(-2px);
+            border-color: #f1f5f9;
         }
 
-        .btn-enter {
-            margin-top: 1rem;
-            padding: 1rem 3rem;
-            background: transparent;
-            border: 1px solid var(--gold-dim);
-            color: var(--gold-dim);
-            font-family: var(--font-main);
+        .level-card.active {
+            border-color: var(--accent-color);
+            background-color: rgba(74, 74, 232, 0.04);
+            box-shadow: var(--shadow-md);
+        }
+
+        .level-card h3 {
+            font-size: 1.1rem;
+            margin-bottom: 0.5rem;
+            color: var(--text-main);
+            transition: color 0.3s;
+        }
+
+        .level-card.active h3 {
+            color: var(--accent-color);
+        }
+
+        .level-card p {
+            font-size: 0.95rem;
+            color: var(--text-muted);
+            line-height: 1.4;
+        }
+
+        /* ÁREA PRINCIPAL */
+        .main-area {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 2.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .text-column {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .column-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-end;
+            margin-bottom: 1rem;
+        }
+
+        .column-header label {
+            font-weight: 600;
+            font-size: 1.15rem;
+            color: var(--text-main);
+        }
+
+        .action-btn {
+            background: none;
+            border: none;
+            color: var(--accent-color);
+            font-weight: 500;
             font-size: 0.9rem;
-            letter-spacing: 0.4em;
-            text-transform: uppercase;
-            cursor: none;
+            cursor: pointer;
+            transition: var(--transition);
+            font-family: 'Outfit', sans-serif;
+            padding: 0.25rem 0.5rem;
+            border-radius: 6px;
+        }
+
+        .action-btn:hover {
+            color: var(--accent-hover);
+            background-color: rgba(74, 74, 232, 0.05);
+        }
+
+        .textarea-container {
             position: relative;
-            overflow: hidden;
-            transition: all 0.8s ease;
-            opacity: 0.8;
+            flex: 1;
+            display: flex;
+            flex-direction: column;
         }
 
-        .btn-enter::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: -100%;
-            width: 50%;
-            height: 100%;
-            background: linear-gradient(to right, transparent, rgba(201, 168, 76, 0.3), transparent);
-            transform: skewX(-20deg);
-            transition: all 0.5s ease;
-        }
-
-        .btn-enter:hover {
-            background-color: var(--gold-fill);
-            box-shadow: 0 0 20px -5px var(--gold-glow);
-            opacity: 1;
-        }
-
-        .btn-enter:hover::before {
-            animation: shine 1.5s ease infinite;
-        }
-
-        @keyframes shine {
-            100% { left: 200%; }
-        }
-
-        .bottom-text {
-            font-size: 0.6rem;
-            letter-spacing: 0.2em;
-            color: var(--text-dim);
-            margin-top: 4rem;
-            text-align: center;
-            text-transform: uppercase;
-            transition: all 0.5s ease;
-        }
-
-        /* Custom Cursor */
-        #cursor-dot {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 4px;
-            height: 4px;
-            background-color: var(--gold-dim);
-            border-radius: 50%;
-            pointer-events: none;
-            z-index: 10000;
-            transform: translate(-50%, -50%);
-            box-shadow: 0 0 8px 2px var(--gold-glow);
-            transition: width 0.2s, height 0.2s, background-color 0.2s;
-        }
-
-        #cursor-trail {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 20px;
-            height: 20px;
-            border: 1px solid rgba(201, 168, 76, 0.3);
-            border-radius: 50%;
-            pointer-events: none;
-            z-index: 9999;
-            transform: translate(-50%, -50%);
-            transition: transform 0.1s ease-out, opacity 0.5s ease;
-        }
-
-        /* Hover states for cursor */
-        body.hovering-input #cursor-dot {
-            width: 2px;
-            height: 20px;
-            border-radius: 0;
-            background-color: var(--gold-dim);
-        }
-        
-        body.hovering-btn #cursor-dot {
-            transform: translate(-50%, -50%) scale(2);
-            background-color: transparent;
-            border: 1px solid var(--gold-dim);
-            box-shadow: inset 0 0 5px var(--gold-glow);
-        }
-
-        /* Shake and Error Animation */
-        @keyframes shake {
-            0%, 100% { transform: translateX(0); }
-            10%, 30%, 50%, 70%, 90% { transform: translateX(-5px); }
-            20%, 40%, 60%, 80% { transform: translateX(5px); }
-        }
-        .shake-animation {
-            animation: shake 0.5s cubic-bezier(.36,.07,.19,.97) both;
-        }
-
-        .error-message {
-            color: rgba(220, 50, 50, 0.7);
-            font-size: 0.8rem;
-            letter-spacing: 0.1em;
-            margin-top: 1rem;
-            text-align: center;
-            opacity: 0;
-            transition: opacity 0.5s ease;
-            position: absolute;
-            bottom: -30px;
+        textarea {
             width: 100%;
+            min-height: 300px;
+            padding: 1.75rem;
+            border-radius: var(--radius-md);
+            border: 1px solid var(--border-color);
+            background-color: var(--card-bg);
+            font-family: 'Lora', serif;
+            font-size: 1.1rem;
+            line-height: 1.8;
+            color: var(--text-main);
+            resize: vertical;
+            transition: var(--transition);
+            box-shadow: var(--shadow-sm);
         }
 
-        /* Success Overlay */
-        .success-overlay {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100vw;
-            height: 100vh;
-            background-color: #000;
-            z-index: 20000;
+        textarea:focus {
+            outline: none;
+            border-color: var(--border-focus);
+            box-shadow: 0 0 0 4px rgba(74, 74, 232, 0.1);
+        }
+
+        textarea::placeholder {
+            color: #94a3b8;
+            font-family: 'Outfit', sans-serif;
+            font-weight: 300;
+        }
+
+        #texto-resultado {
+            background-color: var(--result-bg);
+            border-color: #e2e8f0;
+        }
+
+        #texto-resultado:focus {
+            outline: none;
+            border-color: var(--accent-color);
+            box-shadow: 0 0 0 4px rgba(74, 74, 232, 0.1);
+        }
+
+        .empty-state {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            color: #94a3b8;
+            pointer-events: none;
+            text-align: center;
+            font-family: 'Outfit', sans-serif;
+            transition: opacity 0.3s ease;
+            width: 80%;
+        }
+
+        .word-count {
+            margin-top: 0.75rem;
+            font-size: 0.85rem;
+            color: var(--text-muted);
+            text-align: right;
+            font-weight: 500;
+        }
+
+        .warning-text {
+            color: #d97706;
+            margin-right: 1rem;
+            display: none;
+            font-weight: 500;
+        }
+
+        /* BOTÓN PRINCIPAL */
+        .btn-container {
             display: flex;
             justify-content: center;
-            align-items: center;
-            opacity: 0;
-            pointer-events: none;
-            transition: opacity 1s ease;
+            margin: 1.5rem 0 3.5rem;
         }
 
-        .success-overlay.active {
-            opacity: 1;
-            pointer-events: all;
-        }
-
-        .success-text {
-            color: var(--gold-dim);
-            font-size: 1.5rem;
-            letter-spacing: 0.3em;
+        .btn-primary {
+            background-color: var(--accent-color);
+            color: white;
+            border: none;
+            border-radius: 50px;
+            padding: 1.1rem 3.5rem;
+            font-size: 1.15rem;
+            font-weight: 600;
+            font-family: 'Outfit', sans-serif;
             text-transform: uppercase;
-            text-shadow: 0 0 15px var(--gold-glow);
-            opacity: 0;
+            letter-spacing: 1px;
+            cursor: pointer;
+            transition: var(--transition);
+            box-shadow: var(--shadow-md);
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+
+        .btn-primary:hover:not(:disabled) {
+            background-color: var(--accent-hover);
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-lg);
+        }
+
+        .btn-primary:active:not(:disabled) {
+            transform: translateY(0);
+        }
+
+        .btn-primary:disabled {
+            background-color: #cbd5e1;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+            color: #f8fafc;
+        }
+
+        .spinner {
+            display: none;
+            width: 20px;
+            height: 20px;
+            border: 3px solid rgba(255,255,255,0.3);
+            border-radius: 50%;
+            border-top-color: white;
+            animation: spin 1s ease-in-out infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        .fade-in {
+            animation: fadeIn 0.5s ease forwards;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        /* HISTORIAL */
+        .history-section {
+            padding-top: 2rem;
+            border-top: 1px solid var(--border-color);
+        }
+
+        .history-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            cursor: pointer;
+            user-select: none;
+            margin-bottom: 0;
+            padding: 0.5rem 0;
+            transition: var(--transition);
+        }
+
+        .history-header:hover h3 {
+            color: var(--accent-color);
+        }
+
+        .history-header h3 {
+            font-size: 1.25rem;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            color: var(--text-main);
+            transition: color 0.2s;
+        }
+
+        .toggle-icon {
+            transition: transform 0.3s ease;
+            color: var(--text-muted);
+            font-size: 0.8rem;
+        }
+
+        .history-content {
+            display: none;
+            flex-direction: column;
+            gap: 1rem;
+            margin-top: 1.5rem;
+        }
+
+        .history-content.show {
+            display: flex;
+            animation: fadeIn 0.3s ease;
+        }
+
+        .history-item {
+            background-color: var(--card-bg);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-md);
+            padding: 1.25rem 1.5rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            transition: var(--transition);
+        }
+
+        .history-item:hover {
+            box-shadow: var(--shadow-sm);
+            border-color: #cbd5e1;
+            transform: scale(1.005);
+        }
+
+        .history-preview {
+            flex: 1;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            margin-right: 1.5rem;
+            font-family: 'Lora', serif;
+            color: var(--text-main);
+            font-size: 1.05rem;
+        }
+
+        .history-meta {
+            display: flex;
+            align-items: center;
+            gap: 1.5rem;
+            flex-shrink: 0;
+        }
+
+        .badge {
+            padding: 0.25rem 0.8rem;
+            border-radius: 50px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .badge.basico { background-color: #e0f2fe; color: #0284c7; }
+        .badge.normal { background-color: #f3e8ff; color: #7e22ce; }
+        .badge.avanzado { background-color: #ffedd5; color: #c2410c; }
+
+        .time {
+            font-size: 0.85rem;
+            color: var(--text-muted);
+            font-weight: 500;
+        }
+
+        /* RESPONSIVE */
+        @media (max-width: 900px) {
+            .main-area {
+                gap: 1.5rem;
+            }
+        }
+        
+        @media (max-width: 768px) {
+            .container {
+                padding: 1.5rem 1rem;
+            }
+            header {
+                flex-direction: column;
+                gap: 1.5rem;
+                margin-bottom: 2.5rem;
+            }
+            .user-menu {
+                flex-direction: row;
+                width: 100%;
+                justify-content: space-between;
+            }
+            .level-selector {
+                grid-template-columns: 1fr;
+                gap: 1rem;
+            }
+            .main-area {
+                grid-template-columns: 1fr;
+            }
+            .history-item {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 1rem;
+            }
+            .history-preview {
+                margin-right: 0;
+                white-space: normal;
+                display: -webkit-box;
+                -webkit-line-clamp: 2;
+                -webkit-box-orient: vertical;
+            }
+            .history-meta {
+                width: 100%;
+                justify-content: space-between;
+            }
         }
     </style>
 </head>
 <body>
-    <div class="noise"></div>
-    
-    <div class="rays">
-        <div class="ray"></div>
-        <div class="ray"></div>
-    </div>
-    
-    <canvas id="particles-canvas"></canvas>
-    
-    <div class="fog-container">
-        <div class="fog"></div>
-        <div class="fog2"></div>
-    </div>
+    <div class="container">
+        <header>
+            <div class="greeting">
+                <h1>Hola, <span class="name" id="user-name">Invitado</span> 👋</h1>
+                <p>¿Qué quieres humanizar hoy?</p>
+            </div>
+            <div class="user-menu">
+                <div class="avatar" id="user-avatar">I</div>
+                <button class="logout-btn" onclick="cerrarSesion()">Cerrar sesión</button>
+            </div>
+        </header>
 
-    <div class="login-wrapper">
-        <div class="top-text fade-in delay-1">Solo los invitados pueden entrar</div>
-        
-        <div class="input-group fade-in delay-2">
-            <input type="email" id="email" placeholder="tu correo" autocomplete="off" spellcheck="false">
+        <div class="level-selector" id="level-selector">
+            <div class="level-card" data-level="basico" onclick="selectLevel('basico')">
+                <h3>BÁSICO</h3>
+                <p>Cambios sutiles, mantiene la esencia</p>
+            </div>
+            <div class="level-card active" data-level="normal" onclick="selectLevel('normal')">
+                <h3>NORMAL</h3>
+                <p>Reescritura natural, fluida y expresiva</p>
+            </div>
+            <div class="level-card" data-level="avanzado" onclick="selectLevel('avanzado')">
+                <h3>AVANZADO</h3>
+                <p>Transforma completamente el texto al máximo</p>
+            </div>
         </div>
-        
-        <div class="input-group fade-in delay-3">
-            <input type="text" id="code" class="code-input" placeholder="_ _ _ _ - _ _ _ _" maxlength="9" autocomplete="off" spellcheck="false">
+
+        <div class="main-area">
+            <!-- COLUMNA IZQUIERDA -->
+            <div class="text-column">
+                <div class="column-header">
+                    <label>Tu texto</label>
+                    <button class="action-btn" onclick="limpiarTexto()">Limpiar</button>
+                </div>
+                <div class="textarea-container">
+                    <textarea id="texto-original" placeholder="Pega aquí el texto que quieres humanizar..." oninput="updateOriginal()"></textarea>
+                </div>
+                <div class="word-count">
+                    <span id="warning-msg" class="warning-text">⚠️ Textos muy largos pueden tardar más</span>
+                    <span id="count-original">0 palabras</span>
+                </div>
+            </div>
+
+            <!-- COLUMNA DERECHA -->
+            <div class="text-column">
+                <div class="column-header">
+                    <label>Texto humanizado</label>
+                    <button class="action-btn" id="btn-copiar" onclick="copiarTexto()">Copiar texto</button>
+                </div>
+                <div class="textarea-container">
+                    <textarea id="texto-resultado" readonly></textarea>
+                    <div class="empty-state" id="empty-state">Tu texto humanizado aparecerá aquí...</div>
+                </div>
+                <div class="word-count">
+                    <span id="count-resultado" style="visibility: hidden;">0 palabras</span>
+                </div>
+            </div>
         </div>
-        
-        <button class="btn-enter fade-in delay-4">Entrar</button>
-        <div id="error-msg" class="error-message"></div>
-        
-        <div class="bottom-text fade-in delay-5">¿No tienes invitación? Permanece en las sombras.</div>
-    </div>
 
-    <!-- Success Overlay -->
-    <div id="success-overlay" class="success-overlay">
-        <div id="success-text" class="success-text"></div>
-    </div>
+        <div class="btn-container">
+            <button class="btn-primary" id="btn-humanizar" onclick="iniciarHumanizacion()" disabled>
+                <div class="spinner" id="btn-spinner"></div>
+                <span id="btn-text">✨ Humanizar</span>
+            </button>
+        </div>
 
-    <!-- Custom Cursor elements -->
-    <div id="cursor-dot"></div>
-    <div id="cursor-trail"></div>
+        <div class="history-section">
+            <div class="history-header" onclick="toggleHistory()">
+                <h3>📋 Historial reciente</h3>
+                <span class="toggle-icon" id="history-icon">▼</span>
+            </div>
+            <div class="history-content" id="history-content">
+                <!-- Historial dinámico -->
+            </div>
+        </div>
+    </div>
 
     <script>
-        // Form formatting
-        const codeInput = document.getElementById('code');
-        const emailInput = document.getElementById('email');
-        const btnEnter = document.querySelector('.btn-enter');
+        // --- 1. CONFIGURACIÓN INICIAL Y SESIÓN ---
+        const sesion = JSON.parse(sessionStorage.getItem('sesion') || '{}');
+        const nombre = sesion.nombre || "Invitado";
+        const email = sesion.email || "invitado@ia.local";
         
-        codeInput.addEventListener('input', function(e) {
-            // Remove non-alphanumeric chars
-            let val = this.value.replace(/[^a-zA-Z0-9]/g, '').toUpperCase();
-            
-            // Add hyphen
-            if (val.length > 4) {
-                val = val.substring(0, 4) + '-' + val.substring(4, 8);
-            }
-            
-            // Add flash effect class momentarily to input
-            this.classList.remove('char-flash');
-            void this.offsetWidth; // trigger reflow
-            this.classList.add('char-flash');
-            
-            this.value = val;
-        });
+        document.getElementById('user-name').textContent = nombre;
+        document.getElementById('user-avatar').textContent = nombre.charAt(0).toUpperCase();
 
-        // Custom Cursor Logic
-        const dot = document.getElementById('cursor-dot');
-        const trail = document.getElementById('cursor-trail');
-        const interactables = document.querySelectorAll('input, button');
-        
-        let mouseX = window.innerWidth / 2;
-        let mouseY = window.innerHeight / 2;
-        let trailX = mouseX;
-        let trailY = mouseY;
-        
-        document.addEventListener('mousemove', (e) => {
-            mouseX = e.clientX;
-            mouseY = e.clientY;
-            
-            dot.style.transform = `translate(${mouseX}px, ${mouseY}px)`;
-        });
-
-        // Smooth trailing animation
-        function animateCursor() {
-            // Easing for trail
-            trailX += (mouseX - trailX) * 0.15;
-            trailY += (mouseY - trailY) * 0.15;
-            
-            trail.style.transform = `translate(${trailX}px, ${trailY}px)`;
-            
-            requestAnimationFrame(animateCursor);
-        }
-        animateCursor();
-
-        // Cursor hover states
-        [emailInput, codeInput].forEach(el => {
-            el.addEventListener('mouseenter', () => document.body.classList.add('hovering-input'));
-            el.addEventListener('mouseleave', () => document.body.classList.remove('hovering-input'));
-        });
-
-        btnEnter.addEventListener('mouseenter', () => document.body.classList.add('hovering-btn'));
-        btnEnter.addEventListener('mouseleave', () => document.body.classList.remove('hovering-btn'));
-
-        // Error tracking & Login Event
-        let failedAttempts = parseInt(sessionStorage.getItem('failed_attempts') || '0');
-        let blockUntil = parseInt(sessionStorage.getItem('block_until') || '0');
-
-        function showError(msg) {
-            const wrapper = document.querySelector('.login-wrapper');
-            const errorDiv = document.getElementById('error-msg');
-            
-            wrapper.classList.remove('shake-animation');
-            void wrapper.offsetWidth;
-            wrapper.classList.add('shake-animation');
-            
-            errorDiv.textContent = msg;
-            errorDiv.style.opacity = '1';
-            
-            setTimeout(() => {
-                errorDiv.style.opacity = '0';
-            }, 3000);
+        function cerrarSesion() {
+            sessionStorage.removeItem('sesion');
+            window.location.reload();
         }
 
-        function typeWriter(element, text, i, cb) {
-            if (i < text.length) {
-                element.innerHTML += text.charAt(i);
-                setTimeout(() => typeWriter(element, text, i + 1, cb), 80);
-            } else if (cb) {
-                setTimeout(cb, 500);
-            }
+        // --- 2. ESTADO PRINCIPAL ---
+        let currentLevel = 'normal';
+        const txtOriginal = document.getElementById('texto-original');
+        const txtResultado = document.getElementById('texto-resultado');
+        const countOriginal = document.getElementById('count-original');
+        const countResultado = document.getElementById('count-resultado');
+        const btnHumanizar = document.getElementById('btn-humanizar');
+        const btnText = document.getElementById('btn-text');
+        const btnSpinner = document.getElementById('btn-spinner');
+        const emptyState = document.getElementById('empty-state');
+        const warningMsg = document.getElementById('warning-msg');
+
+        // --- 3. UI Y EVENTOS ---
+        function selectLevel(level) {
+            currentLevel = level;
+            document.querySelectorAll('.level-card').forEach(card => card.classList.remove('active'));
+            document.querySelector(`.level-card[data-level="${level}"]`).classList.add('active');
         }
 
-        function mostrarAnimacionAcceso(cb) {
-            const overlay = document.getElementById('success-overlay');
-            const textEl = document.getElementById('success-text');
-            
-            overlay.classList.add('active');
-            
-            setTimeout(() => {
-                textEl.style.opacity = '1';
-                typeWriter(textEl, "Bienvenido a las sombras...", 0, cb);
-            }, 1000);
+        function countWords(str) {
+            const trimmed = str.trim();
+            if (!trimmed) return 0;
+            return trimmed.split(/\s+/).length;
         }
 
-        btnEnter.addEventListener('click', () => {
-            const now = Date.now();
-            if (now < blockUntil) {
-                showError("Demasiados intentos. Las sombras te observan. Vuelve en unos minutos.");
-                return;
-            }
+        function updateOriginal() {
+            const words = countWords(txtOriginal.value);
+            countOriginal.textContent = `${words} palabra${words !== 1 ? 's' : ''}`;
+            btnHumanizar.disabled = words === 0;
+            warningMsg.style.display = words > 1000 ? 'inline' : 'none';
+        }
 
-            const email = emailInput.value;
-            const codigo = codeInput.value;
-
-            if (!email || !codigo) {
-                showError("Las sombras no te reconocen.");
-                return;
-            }
-
-            const invitaciones = JSON.parse(localStorage.getItem('invitaciones') || '[]');
+        function updateResultado(texto) {
+            txtResultado.value = texto;
+            const words = countWords(texto);
+            countResultado.textContent = `${words} palabra${words !== 1 ? 's' : ''}`;
             
-            const invitacion = invitaciones.find(inv => 
-                inv.email.toLowerCase() === email.toLowerCase().trim() &&
-                inv.codigo === codigo.trim() &&
-                inv.activo === true
-            );
-
-            if (!invitacion) {
-                failedAttempts++;
-                sessionStorage.setItem('failed_attempts', failedAttempts.toString());
+            if (texto.trim().length > 0) {
+                emptyState.style.opacity = '0';
+                countResultado.style.visibility = 'visible';
                 
-                if (failedAttempts >= 5) {
-                    blockUntil = now + 10 * 60 * 1000;
-                    sessionStorage.setItem('block_until', blockUntil.toString());
-                    showError("Demasiados intentos. Las sombras te observan. Vuelve en unos minutos.");
-                } else {
-                    showError("Las sombras no te reconocen.");
-                }
-                return;
-            }
-
-            failedAttempts = 0;
-            sessionStorage.setItem('failed_attempts', '0');
-            
-            invitacion.usado = true;
-            invitacion.fechaUso = new Date().toISOString();
-            localStorage.setItem('invitaciones', JSON.stringify(invitaciones));
-            
-            const usuarios = JSON.parse(localStorage.getItem('usuarios_registrados') || '[]');
-            const yaExiste = usuarios.find(u => u.email.toLowerCase() === email.toLowerCase().trim());
-            
-            if (!yaExiste) {
-                usuarios.push({
-                    email: email.toLowerCase().trim(),
-                    nombre: invitacion.nombre || '',
-                    fechaRegistro: new Date().toISOString(),
-                    ultimoAcceso: new Date().toISOString()
-                });
+                // Aplicar fade-in
+                txtResultado.classList.remove('fade-in');
+                void txtResultado.offsetWidth; // trigger reflow
+                txtResultado.classList.add('fade-in');
             } else {
-                yaExiste.ultimoAcceso = new Date().toISOString();
+                emptyState.style.opacity = '1';
+                countResultado.style.visibility = 'hidden';
             }
-            localStorage.setItem('usuarios_registrados', JSON.stringify(usuarios));
-            
-            sessionStorage.setItem('sesion', JSON.stringify({
-                email: email.toLowerCase().trim(),
-                nombre: invitacion.nombre || email,
-                fechaLogin: new Date().toISOString()
-            }));
-
-            mostrarAnimacionAcceso(() => {
-                document.body.style.transition = 'opacity 1s ease';
-                document.body.style.opacity = '0';
-                setTimeout(() => window.location.href = './dashboard.html', 1000);
-            });
-        });
-
-        // Secret shortcut Shift+Alt+A
-        document.addEventListener('keydown', (e) => {
-            if (e.shiftKey && e.altKey && e.key.toLowerCase() === 'a') {
-                window.location.href = './admin.html';
-            }
-        });
-
-        // Particles System
-        const canvas = document.getElementById('particles-canvas');
-        const ctx = canvas.getContext('2d');
-        
-        let width, height;
-        let particles = [];
-        
-        function resize() {
-            width = window.innerWidth;
-            height = window.innerHeight;
-            canvas.width = width;
-            canvas.height = height;
         }
-        
-        window.addEventListener('resize', resize);
-        resize();
-        
-        class Particle {
-            constructor() {
-                this.x = Math.random() * width;
-                this.y = Math.random() * height;
-                this.size = Math.random() * 1.5 + 0.1;
-                this.speedX = (Math.random() - 0.5) * 0.2;
-                this.speedY = (Math.random() - 0.5) * 0.2 - 0.1; // slight upward drift
-                this.baseAlpha = Math.random() * 0.4 + 0.1;
-                this.alpha = this.baseAlpha;
-                this.oscillationSpeed = Math.random() * 0.02 + 0.01;
-                this.angle = Math.random() * Math.PI * 2;
-            }
+
+        function limpiarTexto() {
+            txtOriginal.value = '';
+            txtResultado.value = '';
+            updateOriginal();
+            updateResultado('');
+            emptyState.textContent = 'Tu texto humanizado aparecerá aquí...';
+        }
+
+        function copiarTexto() {
+            if (!txtResultado.value) return;
+            navigator.clipboard.writeText(txtResultado.value);
             
-            update() {
-                // Mouse interaction - slight repel
-                const dx = mouseX - this.x;
-                const dy = mouseY - this.y;
-                const distance = Math.sqrt(dx * dx + dy * dy);
+            const btn = document.getElementById('btn-copiar');
+            const originalText = btn.textContent;
+            
+            btn.textContent = '✓ Copiado!';
+            btn.style.color = '#10b981';
+            btn.style.backgroundColor = 'rgba(16, 185, 129, 0.1)';
+            
+            setTimeout(() => {
+                btn.textContent = originalText;
+                btn.style.color = '';
+                btn.style.backgroundColor = '';
+            }, 2000);
+        }
+
+        // --- 4. HISTORIAL ---
+        const historyKey = 'historial_' + email;
+        function getHistory() {
+            return JSON.parse(localStorage.getItem(historyKey) || '[]');
+        }
+
+        function saveHistory(textoOriginal, resultado, nivel) {
+            const hist = getHistory();
+            hist.unshift({
+                original: textoOriginal,
+                resultado: resultado,
+                nivel: nivel,
+                fecha: new Date().toISOString()
+            });
+            // Mantener solo los últimos 5
+            if (hist.length > 5) hist.length = 5;
+            localStorage.setItem(historyKey, JSON.stringify(hist));
+            renderHistory();
+        }
+
+        function formatTime(isoString) {
+            const date = new Date(isoString);
+            return date.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
+        }
+
+        function renderHistory() {
+            const content = document.getElementById('history-content');
+            const hist = getHistory();
+            
+            if (hist.length === 0) {
+                content.innerHTML = '<p style="color: var(--text-muted); font-size: 0.95rem; padding: 1rem;">No hay humanizaciones recientes.</p>';
+                return;
+            }
+
+            content.innerHTML = hist.map((item, index) => {
+                const badgeClass = item.nivel || 'normal';
+                const previewText = item.original.length > 60 
+                    ? item.original.substring(0, 60) + '...' 
+                    : item.original;
+                    
+                return `
+                    <div class="history-item">
+                        <div class="history-preview" title="${item.original}">${previewText}</div>
+                        <div class="history-meta">
+                            <span class="badge ${badgeClass}">${item.nivel}</span>
+                            <span class="time">${formatTime(item.fecha)}</span>
+                            <button class="action-btn" onclick="restaurar(${index})">Restaurar</button>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        function restaurar(index) {
+            const hist = getHistory();
+            const item = hist[index];
+            if (item) {
+                txtOriginal.value = item.original;
+                updateOriginal();
+                updateResultado(item.resultado);
+                selectLevel(item.nivel || 'normal');
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+            }
+        }
+
+        let historyOpen = false;
+        function toggleHistory() {
+            historyOpen = !historyOpen;
+            const content = document.getElementById('history-content');
+            const icon = document.getElementById('history-icon');
+            
+            if (historyOpen) {
+                content.classList.add('show');
+                icon.style.transform = 'rotate(180deg)';
+                renderHistory();
+            } else {
+                content.classList.remove('show');
+                icon.style.transform = 'rotate(0deg)';
+            }
+        }
+
+        // --- 5. LÓGICA DE IA ---
+        const niveles = {
+            basico: `Eres un editor de textos. Humaniza el siguiente texto de forma BÁSICA: haz cambios sutiles y mínimos para que suene más natural y menos robótico. Mantén la estructura original, solo ajusta palabras muy artificiales. Conserva el significado exacto. Responde SOLO con el texto humanizado, sin explicaciones ni comentarios.`,
+            normal: `Eres un escritor experto. Humaniza el siguiente texto de forma NATURAL: reescríbelo para que suene como escrito por una persona real, con fluidez y expresividad natural. Varía la longitud de las oraciones, usa conectores naturales, elimina frases robóticas. Mantén el significado pero mejora el tono. Responde SOLO con el texto humanizado, sin explicaciones.`,
+            avanzado: `Eres un escritor creativo experto. Humaniza el siguiente texto de forma AVANZADA: transfórmalo completamente para que suene 100% humano, auténtico y personal. Reorganiza ideas, cambia la estructura, agrega matices naturales, expresiones coloquiales apropiadas, ritmo variado. El resultado debe ser irreconocible como texto de IA pero conservar el mensaje central. Responde SOLO con el texto humanizado, sin explicaciones.`
+        };
+
+        async function humanizarTexto(texto, nivel) {
+            const response = await fetch("/api/chat", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                    system: niveles[nivel],
+                    messages: [{ role: "user", content: texto }],
+                    max_tokens: 2048
+                })
+            });
+            const data = await response.json();
+            return data.content?.[0]?.text || data.message || data.response;
+        }
+
+        async function iniciarHumanizacion() {
+            const texto = txtOriginal.value.trim();
+            if (!texto) return;
+
+            // UI Feedback
+            btnText.textContent = 'Humanizando...';
+            btnSpinner.style.display = 'block';
+            btnHumanizar.disabled = true;
+            
+            txtResultado.classList.remove('fade-in');
+            txtResultado.value = '';
+            emptyState.textContent = '⏳ Procesando texto...';
+            emptyState.style.opacity = '1';
+            countResultado.style.visibility = 'hidden';
+
+            try {
+                const resultado = await humanizarTexto(texto, currentLevel);
                 
-                if (distance < 100) {
-                    this.x -= (dx / distance) * 0.5;
-                    this.y -= (dy / distance) * 0.5;
-                    this.alpha = Math.min(this.baseAlpha * 2, 0.8); // glow slightly when near mouse
+                if (resultado) {
+                    updateResultado(resultado);
+                    saveHistory(texto, resultado, currentLevel);
+                    if (historyOpen) renderHistory();
                 } else {
-                    // Normal animation
-                    this.angle += this.oscillationSpeed;
-                    this.alpha = this.baseAlpha + Math.sin(this.angle) * 0.1;
+                    throw new Error("Respuesta vacía del servidor");
                 }
-                
-                this.x += this.speedX + Math.sin(this.angle) * 0.2;
-                this.y += this.speedY;
-                
-                // Wrap around
-                if (this.y < 0) this.y = height;
-                if (this.y > height) this.y = 0;
-                if (this.x < 0) this.x = width;
-                if (this.x > width) this.x = 0;
-            }
-            
-            draw() {
-                ctx.fillStyle = `rgba(201, 168, 76, ${this.alpha})`;
-                ctx.beginPath();
-                ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
-                ctx.fill();
+            } catch (error) {
+                console.error("Error al humanizar:", error);
+                alert("Hubo un error al procesar el texto. Por favor, asegúrate de tener conexión y probar nuevamente.");
+                emptyState.textContent = 'Tu texto humanizado aparecerá aquí...';
+            } finally {
+                // Restaurar UI
+                btnText.textContent = '✨ Humanizar';
+                btnSpinner.style.display = 'none';
+                btnHumanizar.disabled = false;
             }
         }
-        
-        // Create particles
-        const particleCount = Math.min(window.innerWidth / 10, 150);
-        for (let i = 0; i < particleCount; i++) {
-            particles.push(new Particle());
-        }
-        
-        function animateParticles() {
-            ctx.clearRect(0, 0, width, height);
-            
-            particles.forEach(p => {
-                p.update();
-                p.draw();
-            });
-            
-            requestAnimationFrame(animateParticles);
-        }
-        
-        animateParticles();
+
+        // Inicializar
+        updateOriginal();
     </script>
 </body>
 </html>
